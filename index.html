@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DigiTally — by Bruder Motion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Epilogue:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.19.0/fonts/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f4ef;
+      --surface: #ffffff;
+      --surface2: #f0ede7;
+      --border: rgba(0,0,0,0.08);
+      --border2: rgba(0,0,0,0.16);
+      --text: #18160f;
+      --muted: #7a7568;
+      --hint: #b0ac9f;
+      --accent: #c9401a;
+      --accent-light: #fdf0ec;
+      --green: #1a6b3a;
+      --green-light: #e8f5ee;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: 'Epilogue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Ruled paper lines */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        transparent, transparent 31px,
+        rgba(0,0,0,0.04) 31px, rgba(0,0,0,0.04) 32px
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body.dark {
+      --bg: #131210;
+      --surface: #1c1a17;
+      --surface2: #232018;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.14);
+      --text: #f0ede6;
+      --muted: #888;
+      --hint: #555;
+      --accent-light: rgba(201,64,26,0.15);
+      --green-light: rgba(26,107,58,0.15);
+    }
+    body.dark::after { background-image: repeating-linear-gradient(transparent, transparent 31px, rgba(255,255,255,0.03) 31px, rgba(255,255,255,0.03) 32px); }
+
+    .page { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+
+    /* Side brand */
+    .side-brand { position: fixed; top: 50%; writing-mode: vertical-rl; font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 0.2em; color: var(--hint); user-select: none; pointer-events: none; }
+    .side-brand.left { left: 1.5rem; transform: translateY(-50%) rotate(180deg); }
+    .side-brand.right { right: 1.5rem; transform: translateY(-50%); }
+    @media (max-width: 880px) { .side-brand { display: none; } }
+
+    /* Theme toggle */
+    .top-controls { position: fixed; top: 1.25rem; right: 1.25rem; display: flex; gap: 6px; z-index: 100; }
+    .theme-toggle, .currency-select-btn { background: var(--surface); border: 0.5px solid var(--border2); border-radius: 100px; padding: 5px 12px; font-size: 12px; font-family: 'Epilogue', sans-serif; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 500; }
+    .theme-toggle:hover, .currency-select-btn:hover { color: var(--text); }
+    .currency-select-btn { position: relative; }
+    .currency-dropdown { position: absolute; top: calc(100% + 6px); right: 0; background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); overflow: hidden; display: none; min-width: 150px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+    .currency-dropdown.open { display: block; }
+    .currency-option { padding: 9px 14px; font-size: 13px; font-family: 'Epilogue', sans-serif; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.1s; }
+    .currency-option:hover { background: var(--surface2); color: var(--text); }
+    .currency-option.active { color: var(--accent); font-weight: 600; }
+
+    /* Header */
+    .header { margin-bottom: 2rem; }
+    .header-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.25rem; }
+    .header h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(52px, 10vw, 80px); letter-spacing: 0.04em; line-height: 1; color: var(--text); }
+    .header h1 span { color: var(--accent); }
+    .header-sub { font-size: 13px; color: var(--muted); font-weight: 300; }
+    .eyebrow { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--hint); font-weight: 600; margin-bottom: 0.5rem; }
+
+    /* Client tabs */
+    .clients-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .client-tab { background: var(--surface); border: 0.5px solid var(--border); border-radius: 100px; padding: 5px 14px; font-size: 12px; font-family: 'Epilogue', sans-serif; color: var(--muted); cursor: pointer; transition: all 0.15s; font-weight: 500; white-space: nowrap; }
+    .client-tab:hover { border-color: var(--border2); color: var(--text); }
+    .client-tab.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .manage-clients-btn { background: none; border: none; font-size: 11px; font-family: 'Epilogue', sans-serif; color: var(--hint); cursor: pointer; padding: 0; text-decoration: underline; font-weight: 500; }
+    .manage-clients-btn:hover { color: var(--muted); }
+    .add-client-btn { background: none; border: 0.5px dashed var(--border2); border-radius: 100px; padding: 5px 12px; font-size: 12px; font-family: 'Epilogue', sans-serif; color: var(--hint); cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.15s; }
+    .add-client-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Summary bar */
+    .summary-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 1.25rem; }
+    .summary-item { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 0.9rem 1rem; }
+    .summary-num { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 0.03em; line-height: 1; margin-bottom: 0.2rem; }
+    .summary-num.red { color: var(--accent); }
+    .summary-num.green { color: var(--green); }
+    .summary-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--hint); font-weight: 600; }
+
+    /* Add entry form */
+    .add-form { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
+    .form-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--hint); font-weight: 600; margin-bottom: 0.75rem; }
+    .form-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: end; }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field-label { font-size: 11px; color: var(--muted); font-weight: 500; }
+    input[type="text"], input[type="number"], input[type="date"], select {
+      background: var(--surface2); border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm); padding: 9px 12px; font-size: 14px;
+      font-family: 'Epilogue', sans-serif; color: var(--text); outline: none;
+      transition: border-color 0.15s; width: 100%; appearance: none;
+    }
+    input:focus, select:focus { border-color: var(--border2); }
+    input::placeholder { color: var(--hint); }
+    .amount-input { width: 120px; }
+    @media (max-width: 480px) { .amount-input { width: 100%; } }
+
+    .add-btn { background: var(--accent); border: none; border-radius: var(--radius-sm); padding: 9px 18px; font-size: 13px; font-family: 'Epilogue', sans-serif; font-weight: 600; color: #fff; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px; transition: opacity 0.15s; height: 38px; align-self: end; }
+    .add-btn:hover { opacity: 0.88; }
+
+    /* Period selector */
+    .period-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 8px; }
+    .period-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--hint); font-weight: 600; }
+    .period-tabs { display: flex; gap: 4px; }
+    .period-tab { background: var(--surface); border: 0.5px solid var(--border); border-radius: 6px; padding: 4px 12px; font-size: 12px; font-family: 'Epilogue', sans-serif; color: var(--muted); cursor: pointer; font-weight: 500; transition: all 0.15s; }
+    .period-tab.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+    /* Entries list */
+    .entries-list { display: flex; flex-direction: column; gap: 6px; }
+
+    .group-header { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 0.1em; color: var(--hint); margin: 1rem 0 0.4rem; padding-bottom: 0.4rem; border-bottom: 0.5px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .group-total { font-size: 13px; color: var(--muted); font-family: 'Epilogue', sans-serif; font-weight: 600; }
+
+    .entry-item { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 0.85rem 1rem; display: flex; align-items: center; gap: 10px; transition: border-color 0.15s; }
+    .entry-item:hover { border-color: var(--border2); }
+    .entry-item.paid { opacity: 0.5; }
+    .entry-check { width: 18px; height: 18px; border: 1.5px solid var(--border2); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; }
+    .entry-check:hover { border-color: var(--green); }
+    .entry-check.checked { background: var(--green); border-color: var(--green); }
+    .entry-check.checked::after { content: '✓'; font-size: 11px; color: white; font-weight: 700; }
+    .entry-info { flex: 1; min-width: 0; }
+    .entry-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .entry-item.paid .entry-name { text-decoration: line-through; }
+    .entry-meta { font-size: 11px; color: var(--hint); margin-top: 2px; }
+    .entry-amount { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 0.02em; color: var(--accent); flex-shrink: 0; }
+    .entry-item.paid .entry-amount { color: var(--green); }
+    .entry-delete { background: none; border: none; color: var(--hint); cursor: pointer; padding: 2px; font-size: 15px; flex-shrink: 0; opacity: 0; transition: opacity 0.15s; }
+    .entry-item:hover .entry-delete { opacity: 1; }
+    .entry-delete:hover { color: var(--accent); }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--hint); }
+    .empty-state i { font-size: 36px; margin-bottom: 0.75rem; display: block; opacity: 0.4; }
+    .empty-state p { font-size: 14px; }
+
+    /* Actions */
+    .bottom-actions { display: flex; gap: 8px; margin-top: 1.5rem; flex-wrap: wrap; }
+    .sec-btn { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 16px; font-size: 12px; font-family: 'Epilogue', sans-serif; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500; transition: all 0.15s; }
+    .sec-btn:hover { border-color: var(--border2); color: var(--text); }
+    .sec-btn.danger:hover { border-color: var(--accent); color: var(--accent); }
+    .copied-badge { font-size: 11px; color: var(--green); background: var(--green-light); padding: 4px 10px; border-radius: 100px; display: none; align-items: center; gap: 4px; }
+    .copied-badge.visible { display: inline-flex; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 1rem; }
+    .modal-overlay.visible { display: flex; }
+    .modal { background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 1.5rem; width: 100%; max-width: 360px; }
+    .modal h3 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.05em; margin-bottom: 1rem; }
+    .modal input { width: 100%; margin-bottom: 1rem; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .modal-cancel { background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 16px; font-size: 13px; font-family: 'Epilogue', sans-serif; color: var(--muted); cursor: pointer; font-weight: 500; }
+    .modal-confirm { background: var(--accent); border: none; border-radius: var(--radius-sm); padding: 8px 16px; font-size: 13px; font-family: 'Epilogue', sans-serif; color: #fff; cursor: pointer; font-weight: 600; }
+
+    /* Footer */
+    .footer { text-align: center; margin-top: 3rem; font-size: 11px; color: var(--hint); }
+    .footer a { color: var(--hint); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <span class="side-brand left">Bruder Motion</span>
+  <span class="side-brand right">Bruder Motion</span>
+  <div class="top-controls">
+    <div class="currency-select-btn" id="currencyBtn">
+      <i class="ti ti-currency-dollar"></i>
+      <span id="currencyLabel">$</span>
+      <div class="currency-dropdown" id="currencyDropdown">
+        <div class="currency-option" data-symbol="$" data-code="USD"><span>$</span> US Dollar</div>
+        <div class="currency-option" data-symbol="₹" data-code="INR"><span>₹</span> Indian Rupee</div>
+        <div class="currency-option" data-symbol="₨" data-code="PKR"><span>₨</span> Pakistani Rupee</div>
+        <div class="currency-option" data-symbol="৳" data-code="BDT"><span>৳</span> Bangladeshi Taka</div>
+      </div>
+    </div>
+    <button class="theme-toggle" id="themeToggle"><i class="ti ti-moon"></i> Dark</button>
+  </div>
+
+  <div class="page">
+
+    <header class="header">
+      <div class="eyebrow">Bruder Motion</div>
+      <div class="header-top">
+        <h1><span>D</span>igi<span>T</span>ally</h1>
+      </div>
+      <div class="header-sub">Track what's owed. Know when it's due.</div>
+    </header>
+
+    <!-- Clients -->
+    <div class="clients-bar" id="clientsBar"></div>
+    <button class="manage-clients-btn" id="manageClientsBtn" style="display:none;">Manage clients</button>
+
+    <!-- Summary -->
+    <div class="summary-bar">
+      <div class="summary-item">
+        <div class="summary-num red" id="totalOwed">0</div>
+        <div class="summary-label">Total Owed</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-num green" id="totalPaid">0</div>
+        <div class="summary-label">Paid</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-num" id="totalEntries">0</div>
+        <div class="summary-label">Entries</div>
+      </div>
+    </div>
+
+    <!-- Add entry -->
+    <div class="add-form">
+      <div class="form-label">Add Entry</div>
+      <div class="form-row">
+        <div class="field">
+          <div class="field-label">Description</div>
+          <input type="text" id="entryName" placeholder="e.g. Video edit — Reel #4" />
+        </div>
+        <div class="field">
+          <div class="field-label">Amount</div>
+          <input type="number" id="entryAmount" placeholder="0.00" class="amount-input" min="0" step="0.01" />
+        </div>
+        <button class="add-btn" id="addBtn"><i class="ti ti-plus"></i> Add</button>
+      </div>
+    </div>
+
+    <!-- Period filter -->
+    <div class="period-row">
+      <div class="period-label">View by</div>
+      <div class="period-tabs">
+        <button class="period-tab active" data-val="all">All</button>
+        <button class="period-tab" data-val="week">This Week</button>
+        <button class="period-tab" data-val="month">This Month</button>
+      </div>
+    </div>
+
+    <!-- Entries -->
+    <div class="entries-list" id="entriesList"></div>
+
+    <!-- Actions -->
+    <div class="bottom-actions">
+      <button class="sec-btn" id="copyBtn"><i class="ti ti-copy"></i> Copy summary</button>
+      <button class="sec-btn" id="markAllPaidBtn"><i class="ti ti-circle-check"></i> Mark all paid</button>
+      <button class="sec-btn danger" id="clearPaidBtn"><i class="ti ti-trash"></i> Clear paid</button>
+      <span class="copied-badge" id="copiedBadge"><i class="ti ti-check"></i> Copied</span>
+    </div>
+
+    <footer class="footer">
+      <p>Built by <a href="https://github.com/letmebuildappz" target="_blank">Bruder Motion</a> — open source, data stays on your device.</p>
+    </footer>
+
+  </div>
+
+  <!-- Manage clients modal -->
+  <div class="modal-overlay" id="manageClientsOverlay">
+    <div class="modal">
+      <h3>Manage Clients</h3>
+      <div id="manageClientsList" style="margin-bottom:1rem;display:flex;flex-direction:column;gap:8px;"></div>
+      <div class="modal-actions">
+        <button class="modal-cancel" id="manageClientsClose">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add client modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h3>New Client</h3>
+      <input type="text" id="newClientName" placeholder="Client or project name..." />
+      <div class="modal-actions">
+        <button class="modal-cancel" id="modalCancel">Cancel</button>
+        <button class="modal-confirm" id="modalConfirm">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── State ──────────────────────────────────────────────
+    let state = {
+      clients: ['Personal'],
+      activeClient: 'Personal',
+      entries: {},   // { clientName: [ {id, name, amount, date, paid} ] }
+      period: 'all'
+    };
+
+    function save() { localStorage.setItem('udhaar_v1', JSON.stringify(state)); }
+    function load() {
+      const raw = localStorage.getItem('udhaar_v1');
+      if (raw) {
+        try { state = JSON.parse(raw); } catch(e) {}
+      }
+    }
+    load();
+
+    function clientEntries() { return state.entries[state.activeClient] || []; }
+
+    function setClientEntries(arr) {
+      state.entries[state.activeClient] = arr;
+      save();
+    }
+
+    // ── Currency ─────────────────────────────────────────────
+    const CURRENCIES = { USD: '$', INR: '₹', PKR: '₨', BDT: '৳' };
+    let activeCurrency = localStorage.getItem('udhaar_currency') || 'USD';
+
+    function applyActiveCurrency() {
+      document.getElementById('currencyLabel').textContent = CURRENCIES[activeCurrency];
+      document.querySelectorAll('.currency-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.code === activeCurrency);
+      });
+    }
+
+    const currencyBtn = document.getElementById('currencyBtn');
+    const currencyDropdown = document.getElementById('currencyDropdown');
+
+    currencyBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      currencyDropdown.classList.toggle('open');
+    });
+
+    document.addEventListener('click', () => currencyDropdown.classList.remove('open'));
+
+    document.querySelectorAll('.currency-option').forEach(opt => {
+      opt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        activeCurrency = opt.dataset.code;
+        localStorage.setItem('udhaar_currency', activeCurrency);
+        applyActiveCurrency();
+        currencyDropdown.classList.remove('open');
+        render();
+      });
+    });
+
+    applyActiveCurrency();
+
+    // ── Theme ──────────────────────────────────────────────
+    const themeToggle = document.getElementById('themeToggle');
+    let isDark = localStorage.getItem('udhaar_theme') === 'dark';
+    function applyTheme() {
+      document.body.classList.toggle('dark', isDark);
+      themeToggle.innerHTML = isDark ? '<i class="ti ti-sun"></i> Light' : '<i class="ti ti-moon"></i> Dark';
+    }
+    applyTheme();
+    themeToggle.addEventListener('click', () => {
+      isDark = !isDark;
+      localStorage.setItem('udhaar_theme', isDark ? 'dark' : 'light');
+      applyTheme();
+    });
+
+    // ── Period ──────────────────────────────────────────────
+    document.querySelectorAll('.period-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.period-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.period = btn.dataset.val;
+        render();
+      });
+    });
+
+    function inPeriod(entry) {
+      if (state.period === 'all') return true;
+      const now = new Date();
+      const d = new Date(entry.date);
+      if (state.period === 'week') {
+        const start = new Date(now);
+        start.setDate(now.getDate() - now.getDay());
+        start.setHours(0,0,0,0);
+        return d >= start;
+      }
+      if (state.period === 'month') {
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      }
+      return true;
+    }
+
+    // ── Clients ─────────────────────────────────────────────
+    function renderClients() {
+      const bar = document.getElementById('clientsBar');
+      bar.innerHTML = '';
+      state.clients.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'client-tab' + (c === state.activeClient ? ' active' : '');
+        btn.textContent = c;
+        btn.addEventListener('click', () => {
+          state.activeClient = c;
+          save();
+          renderClients();
+          render();
+          updateDeleteBar();
+        });
+        bar.appendChild(btn);
+      });
+      const addBtn = document.createElement('button');
+      addBtn.className = 'add-client-btn';
+      addBtn.innerHTML = '<i class="ti ti-plus"></i> New client';
+      addBtn.addEventListener('click', () => document.getElementById('modalOverlay').classList.add('visible'));
+      bar.appendChild(addBtn);
+      updateDeleteBar();
+    }
+
+    function updateDeleteBar() {
+      const btn = document.getElementById('manageClientsBtn');
+      btn.style.display = state.clients.length > 1 ? 'inline-block' : 'none';
+    }
+
+    document.getElementById('manageClientsBtn').addEventListener('click', () => {
+      renderManageClients();
+      document.getElementById('manageClientsOverlay').classList.add('visible');
+    });
+
+    document.getElementById('manageClientsClose').addEventListener('click', () => {
+      document.getElementById('manageClientsOverlay').classList.remove('visible');
+    });
+
+    function renderManageClients() {
+      const list = document.getElementById('manageClientsList');
+      list.innerHTML = '';
+      state.clients.forEach(c => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface2);border-radius:var(--radius-sm);font-size:13px;';
+        const name = document.createElement('span');
+        name.textContent = c;
+        name.style.fontWeight = '500';
+        row.appendChild(name);
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Delete';
+        delBtn.style.cssText = 'background:none;border:0.5px solid rgba(201,64,26,0.4);border-radius:6px;padding:3px 10px;font-size:11px;font-family:Epilogue,sans-serif;color:var(--accent);cursor:pointer;font-weight:500;';
+        delBtn.addEventListener('click', () => {
+          state.clients = state.clients.filter(x => x !== c);
+          delete state.entries[c];
+          if (state.activeClient === c) state.activeClient = state.clients[0];
+          save();
+          renderClients();
+          render();
+          renderManageClients();
+          if (state.clients.length <= 1) document.getElementById('manageClientsOverlay').classList.remove('visible');
+        });
+        row.appendChild(delBtn);
+        list.appendChild(row);
+      });
+    }
+
+    document.getElementById('deleteClientBtn') && document.getElementById('deleteClientBtn').addEventListener('click', () => {});
+
+    // Modal
+    document.getElementById('modalCancel').addEventListener('click', () => {
+      document.getElementById('modalOverlay').classList.remove('visible');
+      document.getElementById('newClientName').value = '';
+    });
+    document.getElementById('modalConfirm').addEventListener('click', addClient);
+    document.getElementById('newClientName').addEventListener('keydown', e => { if (e.key === 'Enter') addClient(); });
+
+    function addClient() {
+      const name = document.getElementById('newClientName').value.trim();
+      if (!name) return;
+      if (!state.clients.includes(name)) { state.clients.push(name); }
+      state.activeClient = name;
+      document.getElementById('modalOverlay').classList.remove('visible');
+      document.getElementById('newClientName').value = '';
+      save();
+      renderClients();
+      render();
+    }
+
+    // ── Add entry ───────────────────────────────────────────
+    document.getElementById('addBtn').addEventListener('click', addEntry);
+    document.getElementById('entryAmount').addEventListener('keydown', e => { if (e.key === 'Enter') addEntry(); });
+
+    function addEntry() {
+      const name = document.getElementById('entryName').value.trim();
+      const amount = parseFloat(document.getElementById('entryAmount').value);
+      if (!name || isNaN(amount) || amount <= 0) return;
+
+      const entries = clientEntries();
+      entries.unshift({ id: Date.now(), name, amount, date: new Date().toISOString(), paid: false });
+      setClientEntries(entries);
+      document.getElementById('entryName').value = '';
+      document.getElementById('entryAmount').value = '';
+      render();
+    }
+
+    // ── Render ──────────────────────────────────────────────
+    function render() {
+      const allEntries = clientEntries();
+      const filtered = allEntries.filter(inPeriod);
+
+      // Summary
+      const owed = filtered.filter(e => !e.paid).reduce((s, e) => s + e.amount, 0);
+      const paid = filtered.filter(e => e.paid).reduce((s, e) => s + e.amount, 0);
+      document.getElementById('totalOwed').textContent = formatAmount(owed);
+      document.getElementById('totalPaid').textContent = formatAmount(paid);
+      document.getElementById('totalEntries').textContent = filtered.length;
+
+      // Group by date
+      const groups = {};
+      filtered.forEach(e => {
+        const key = groupKey(e.date);
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(e);
+      });
+
+      const list = document.getElementById('entriesList');
+      list.innerHTML = '';
+
+      if (filtered.length === 0) {
+        list.innerHTML = '<div class="empty-state"><i class="ti ti-notebook"></i><p>No entries yet. Add the first one above.</p></div>';
+        return;
+      }
+
+      Object.keys(groups).forEach(key => {
+        const items = groups[key];
+        const groupTotal = items.reduce((s, e) => s + e.amount, 0);
+
+        const header = document.createElement('div');
+        header.className = 'group-header';
+        header.innerHTML = `<span>${key}</span><span class="group-total">${formatAmount(groupTotal)}</span>`;
+        list.appendChild(header);
+
+        items.forEach(entry => {
+          const item = document.createElement('div');
+          item.className = 'entry-item' + (entry.paid ? ' paid' : '');
+          item.innerHTML = `
+            <div class="entry-check ${entry.paid ? 'checked' : ''}" data-id="${entry.id}"></div>
+            <div class="entry-info">
+              <div class="entry-name">${escHtml(entry.name)}</div>
+              <div class="entry-meta">${formatDate(entry.date)}</div>
+            </div>
+            <div class="entry-amount">${formatAmount(entry.amount)}</div>
+            <button class="entry-delete" data-id="${entry.id}" title="Delete"><i class="ti ti-x"></i></button>
+          `;
+          list.appendChild(item);
+        });
+      });
+
+      // Check toggle
+      list.querySelectorAll('.entry-check').forEach(el => {
+        el.addEventListener('click', () => {
+          const id = parseInt(el.dataset.id);
+          const entries = clientEntries();
+          const entry = entries.find(e => e.id === id);
+          if (entry) { entry.paid = !entry.paid; setClientEntries(entries); render(); }
+        });
+      });
+
+      // Delete
+      list.querySelectorAll('.entry-delete').forEach(el => {
+        el.addEventListener('click', () => {
+          const id = parseInt(el.dataset.id);
+          setClientEntries(clientEntries().filter(e => e.id !== id));
+          render();
+        });
+      });
+    }
+
+    // ── Actions ─────────────────────────────────────────────
+    document.getElementById('markAllPaidBtn').addEventListener('click', () => {
+      const entries = clientEntries();
+      entries.forEach(e => { if (inPeriod(e)) e.paid = true; });
+      setClientEntries(entries);
+      render();
+    });
+
+    document.getElementById('clearPaidBtn').addEventListener('click', () => {
+      setClientEntries(clientEntries().filter(e => !e.paid));
+      render();
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const filtered = clientEntries().filter(inPeriod);
+      const owed = filtered.filter(e => !e.paid).reduce((s, e) => s + e.amount, 0);
+      const paid = filtered.filter(e => e.paid).reduce((s, e) => s + e.amount, 0);
+      let text = `DigiTally — ${state.activeClient}\n`;
+      text += `Period: ${state.period === 'all' ? 'All time' : state.period === 'week' ? 'This week' : 'This month'}\n\n`;
+      filtered.forEach(e => { text += `${e.paid ? '[PAID]' : '[OWED]'} ${e.name} — ${formatAmount(e.amount)} (${formatDate(e.date)})\n`; });
+      text += `\nTotal owed: ${formatAmount(owed)}\nTotal paid: ${formatAmount(paid)}`;
+      navigator.clipboard.writeText(text).then(() => {
+        const badge = document.getElementById('copiedBadge');
+        badge.classList.add('visible');
+        setTimeout(() => badge.classList.remove('visible'), 2000);
+      });
+    });
+    function formatAmount(n) {
+      const sym = CURRENCIES[activeCurrency] || '$';
+      const num = Number(n);
+      const formatted = num % 1 === 0 ? num.toLocaleString('en-US') : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return sym + formatted;
+    }
+
+    function formatDate(iso) {
+      const d = new Date(iso);
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function groupKey(iso) {
+      const d = new Date(iso);
+      if (state.period === 'month' || state.period === 'all') {
+        return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      }
+      return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+    }
+
+    function escHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // ── Init ─────────────────────────────────────────────────
+    renderClients();
+    render();
+  </script>
+</body>
+</html>
