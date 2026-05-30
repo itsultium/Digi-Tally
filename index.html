@@ -327,7 +327,40 @@
 
     // ── Currency ─────────────────────────────────────────────
     const CURRENCIES = { USD: '$', INR: '₹', PKR: '₨', BDT: '৳' };
+    const FALLBACK_RATES = { USD: 1, INR: 83.5, PKR: 278.5, BDT: 122.8 };
     let activeCurrency = localStorage.getItem('udhaar_currency') || 'USD';
+    let exchangeRates = JSON.parse(localStorage.getItem('udhaar_rates') || 'null') || FALLBACK_RATES;
+    let ratesLastFetched = parseInt(localStorage.getItem('udhaar_rates_ts') || '0');
+
+    async function fetchRates() {
+      const now = Date.now();
+      if (now - ratesLastFetched < 3600000 && exchangeRates !== FALLBACK_RATES) return;
+      try {
+        const res = await fetch('https://open.er-api.com/v6/latest/USD');
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        exchangeRates = {
+          USD: 1,
+          INR: data.rates.INR,
+          PKR: data.rates.PKR,
+          BDT: data.rates.BDT
+        };
+        ratesLastFetched = now;
+        localStorage.setItem('udhaar_rates', JSON.stringify(exchangeRates));
+        localStorage.setItem('udhaar_rates_ts', now.toString());
+        render();
+      } catch(e) {
+        if (!localStorage.getItem('udhaar_rates')) {
+          exchangeRates = FALLBACK_RATES;
+        }
+      }
+    }
+
+    function convertAmount(amount, toCurrency) {
+      if (toCurrency === 'USD') return Number(amount);
+      const rate = exchangeRates[toCurrency] || FALLBACK_RATES[toCurrency] || 1;
+      return Number(amount) * rate;
+    }
 
     function applyActiveCurrency() {
       document.getElementById('currencyLabel').textContent = CURRENCIES[activeCurrency];
@@ -347,16 +380,18 @@
     document.addEventListener('click', () => currencyDropdown.classList.remove('open'));
 
     document.querySelectorAll('.currency-option').forEach(opt => {
-      opt.addEventListener('click', (e) => {
+      opt.addEventListener('click', async (e) => {
         e.stopPropagation();
         activeCurrency = opt.dataset.code;
         localStorage.setItem('udhaar_currency', activeCurrency);
         applyActiveCurrency();
         currencyDropdown.classList.remove('open');
+        await fetchRates();
         render();
       });
     });
 
+    fetchRates().then(() => { applyActiveCurrency(); render(); });
     applyActiveCurrency();
 
     // ── Theme ──────────────────────────────────────────────
@@ -607,8 +642,10 @@
     });
     function formatAmount(n) {
       const sym = CURRENCIES[activeCurrency] || '$';
-      const num = Number(n);
-      const formatted = num % 1 === 0 ? num.toLocaleString('en-US') : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const converted = convertAmount(Number(n), activeCurrency);
+      const formatted = converted % 1 === 0
+        ? converted.toLocaleString('en-US')
+        : converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       return sym + formatted;
     }
 
