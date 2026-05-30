@@ -6,19 +6,21 @@ A simple, persistent bill tracker and ledger. Add entries as you go, group by we
 
 ## Features
 
-- Multiple clients / projects
+- Multiple clients / projects with delete option
 - Add entries with description and amount
 - Group by All, This Week, or This Month
-- Mark entries as paid
+- Mark entries as paid individually or all at once
 - Running total — owed vs paid
 - Copy full summary to clipboard
-- Mark all paid / clear paid entries
+- Clear paid entries
+- Live currency conversion — USD, INR, PKR, BDT
+- Real exchange rates powered by ExchangeRate-API (updated daily, no key needed)
 - Dark and light mode
 - **Data never disappears** — stored in localStorage, survives browser close, refresh, and device shutdown
 
 ## No API, no backend
 
-100% client-side. No accounts, no internet required after first load. Everything stored locally on your device.
+100% client-side. No accounts, no login. Currency rates fetched once and cached for 1 hour. Everything stored locally on your device.
 
 ## Use cases
 
@@ -31,6 +33,10 @@ A simple, persistent bill tracker and ledger. Add entries as you go, group by we
 
 Open `index.html` in your browser. No build step needed.
 
+## Deploy
+
+Works with GitHub Pages, Vercel, or Netlify.
+
 ## Built by
 
-[Bruder Motion](https://github.com/itsultium) — open source.
+[Bruder Motion](https://github.com/itsultium) — open source, MIT license.
