@@ -1,0 +1,1918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DigiTally — by Bruder Motion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Epilogue:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.19.0/fonts/tabler-icons.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f7f4ef; --surface: #ffffff; --surface2: #f0ede7; --border: rgba(0,0,0,0.08); --border2: rgba(0,0,0,0.16);
+      --text: #18160f; --muted: #7a7568; --hint: #b0ac9f; --accent: #c9401a; --accent-light: #fdf0ec;
+      --green: #1a6b3a; --green-light: #e8f5ee; --radius: 12px; --radius-sm: 8px;
+    }
+    body { font-family: 'Epilogue', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; position: relative; }
+    body::after { content: ''; position: absolute; inset: 0; background-image: repeating-linear-gradient(transparent, transparent 31px, rgba(0,0,0,0.04) 31px, rgba(0,0,0,0.04) 32px); pointer-events: none; z-index: 0; }
+    body.dark { --bg: #131210; --surface: #1c1a17; --surface2: #232018; --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.14); --text: #f0ede6; --muted: #888; --hint: #555; --accent-light: rgba(201,64,26,0.15); --green-light: rgba(26,107,58,0.15); }
+    body.dark::after { background-image: repeating-linear-gradient(transparent, transparent 31px, rgba(255,255,255,0.03) 31px, rgba(255,255,255,0.03) 32px); }
+    .page { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+    .side-brand { position: fixed; top: 50%; writing-mode: vertical-rl; font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 0.2em; color: var(--hint); user-select: none; pointer-events: none; }
+    .side-brand.left { left: 1.5rem; transform: translateY(-50%) rotate(180deg); }
+    .side-brand.right { right: 1.5rem; transform: translateY(-50%); }
+    @media (max-width: 880px) { .side-brand { display: none; } }
+    .top-controls { position: fixed; top: 1.25rem; right: 1.25rem; display: flex; gap: 6px; z-index: 100; }
+    .ctrl-btn { background: var(--surface); border: 0.5px solid var(--border2); border-radius: 100px; padding: 5px 12px; font-size: 12px; font-family: 'Epilogue', sans-serif; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 500; }
+    .ctrl-btn:hover { color: var(--text); }
+
+    /* Auth screen */
+    .auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; position: relative; z-index: 1; }
+    .auth-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 2.5rem 2rem; width: 100%; max-width: 380px; text-align: center; }
+    .auth-logo { font-family: 'Bebas Neue', sans-serif; font-size: 48px; letter-spacing: 0.04em; margin-bottom: 0.25rem; }
+    .auth-logo .accent { color: var(--accent); }
+    .auth-sub { font-size: 13px; color: var(--muted); margin-bottom: 2rem; font-weight: 300; }
+    .auth-divider { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--hint); margin: 1.5rem 0; position: relative; }
+    .auth-divider::before, .auth-divider::after { content: ''; position: absolute; top: 50%; width: calc(50% - 2rem); height: 0.5px; background: var(--border2); }
+    .auth-divider::before { left: 0; } .auth-divider::after { right: 0; }
+    .auth-input { width: 100%; background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 14px; font-family: 'Epilogue', sans-serif; color: var(--text); outline: none; margin-bottom: 10px; }
+    .auth-input:focus { border-color: var(--border2); }
+    .auth-input::placeholder { color: var(--hint); }
+    .auth-btn { width: 100%; background: var(--accent); border: none; border-radius: var(--radius-sm); padding: 12px; font-size: 14px; font-family: 'Epilogue', sans-serif; font-weight: 600; color: #fff; cursor: pointer; margin-bottom: 8px; transition: opacity 0.15s; }
+    .auth-btn:hover { opacity: 0.88; }
+    .auth-btn.secondary { background: var(--surface2); color: var(--text); border: 0.5px solid var(--border2); }
+    .auth-toggle { font-size: 12px; color: var(--muted); margin-top: 1rem; }
+    .auth-toggle span { color: var(--accent); cursor: pointer; text-decoration: underline; }
+    .auth-error { font-size: 12px; color: var(--accent); margin-bottom: 10px; display: none; padding: 8px 12px; background: var(--accent-light); border-radius: var(--radius-sm); }
+    .auth-error.visible { display: block; }
+    .auth-eyebrow { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--hint); margin-bottom: 1.5rem; }
+
+    /* Main app */
+    .app-screen { display: none; }
+    .app-screen.visible { display: block; }
+    .header { margin-bottom: 2rem; }
+    .header-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.25rem; }
+    .header h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(52px, 10vw, 80px); letter-spacing: 0.04em; line-height: 1; }
+    .header h1 span { color: var(--accent); }
+    .header-sub { font-size: 13px; color: var(--muted); font-weight: 300; }
+    .eyebrow { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--hint); font-weight: 600; margin-bottom: 0.5rem; }
+    .user-bar { display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; height: 26px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 100px; width: fit-content; }
+    .user-bar-wrap { margin-bottom: 1.5rem; line-height: 0; }
+    .user-email { font-size: 12px; color: var(--muted); font-weight: 500; }
+    .signout-btn { background: none; border: none; font-size: 11px; color: var(--hint); cursor: pointer; font-family: 'Epilogue', sans-serif; text-decoration: underline; padding: 0; }
+    .signout-btn:hover { color: var(--accent); }
+    .clients-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .client-tab { background: var(--surface); border: 0.5px solid var(--border); border-radius: 100px; padding: 0 14px; height: 26px; display: inline-flex; align-items: center; font-size: 12px; font-family: 'Epilogue', sans-serif; color: var(--muted); cursor: pointer; transition: all 0.15s; font-weight: 500; white-space: nowrap; }
+    .client-tab:hover { border-color: var(--border2); color: var(--text); }
+    .client-tab.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .add-client-btn { background: none; border: 0.5px dashed var(--border2); border-radius: 100px; padding: 0 12px; height: 26px; font-size: 12px; font-family: 'Epilogue', sans-serif; color: var(--hint); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.15s; }
+    .add-client-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .manage-clients-btn { background: none; border: none; font-size: 11px; font-family: 'Epilogue', sans-serif; color: var(--hint); cursor: pointer; padding: 0; text-decoration: underline; font-weight: 500; margin-bottom: 1.5rem; display: none; }
+    .manage-clients-btn:hover { color: var(--muted); }
+    .summary-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 1.5rem; }
+    .summary-item { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 0.9rem 1rem; }
+    .summary-num { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 0.03em; line-height: 1; margin-bottom: 0.2rem; }
+    .summary-num.red { color: var(--accent); } .summary-num.green { color: var(--green); }
+    .summary-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--hint); font-weight: 600; }
+    .add-form { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem; }
+    .form-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--hint); font-weight: 600; margin-bottom: 0.75rem; }
+    .form-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: end; }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field-label { font-size: 11px; color: var(--muted); font-weight: 500; }
+    input[type="text"], input[type="number"], input[type="email"], input[type="password"], select {
+      background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm);
+      padding: 9px 12px; font-size: 14px; font-family: 'Epilogue', sans-serif; color: var(--text);
+      outline: none; transition: border-color 0.15s; width: 100%; appearance: none;
+    }
+    input:focus, select:focus { border-color: var(--border2); }
+    input::placeholder { color: var(--hint); }
+    .amount-input { width: 120px; } @media (max-width: 480px) { .amount-input { width: 100%; } }
+    .add-btn { background: var(--accent); border: none; border-radius: var(--radius-sm); padding: 9px 18px; font-size: 13px; font-family: 'Epilogue', sans-serif; font-weight: 600; color: #fff; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px; transition: opacity 0.15s; height: 38px; align-self: end; }
+    .add-btn:hover { opacity: 0.88; }
+    .period-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
+    .period-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--hint); font-weight: 600; }
+    .period-tabs { display: flex; gap: 4px; }
+    .period-tab { background: var(--surface); border: 0.5px solid var(--border); border-radius: 6px; padding: 4px 12px; font-size: 12px; font-family: 'Epilogue', sans-serif; color: var(--muted); cursor: pointer; font-weight: 500; transition: all 0.15s; }
+    .period-tab.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .entries-list { display: flex; flex-direction: column; gap: 6px; }
+    .group-header { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 0.1em; color: var(--hint); margin: 1rem 0 0.4rem; padding-bottom: 0.4rem; border-bottom: 0.5px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .group-header:first-child { margin-top: 0; }
+    .group-total { font-size: 13px; color: var(--muted); font-family: 'Epilogue', sans-serif; font-weight: 600; }
+    .entry-item { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 0.85rem 1rem; display: flex; align-items: center; gap: 10px; transition: border-color 0.15s; }
+    .entry-item:hover { border-color: var(--border2); }
+    .entry-item.paid { opacity: 0.5; }
+    .entry-check { width: 18px; height: 18px; border: 1.5px solid var(--border2); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; }
+    .entry-check:hover { border-color: var(--green); }
+    .entry-check.checked { background: var(--green); border-color: var(--green); }
+    .entry-check.checked::after { content: '✓'; font-size: 11px; color: white; font-weight: 700; }
+    .entry-info { flex: 1; min-width: 0; }
+    .entry-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .entry-item.paid .entry-name { text-decoration: line-through; }
+    .entry-meta { font-size: 11px; color: var(--hint); margin-top: 2px; }
+    .entry-amount { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 0.02em; color: var(--accent); flex-shrink: 0; }
+    .entry-item.paid .entry-amount { color: var(--green); }
+    .entry-delete { background: none; border: none; color: var(--hint); cursor: pointer; padding: 2px; font-size: 15px; flex-shrink: 0; opacity: 0; transition: opacity 0.15s; }
+    .entry-item:hover .entry-delete { opacity: 1; }
+    .entry-delete:hover { color: var(--accent); }
+    .entry-edit { background: none; border: none; color: var(--hint); cursor: pointer; padding: 2px; font-size: 15px; flex-shrink: 0; opacity: 0; transition: opacity 0.15s; }
+    .entry-item:hover .entry-edit { opacity: 1; }
+    .entry-edit:hover { color: var(--text); }
+    .entry-info .entry-name, .entry-info.editable, .entry-amount.editable { cursor: pointer; }
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--hint); }
+    .empty-state i { font-size: 36px; margin-bottom: 0.75rem; display: block; opacity: 0.4; }
+    .empty-state p { font-size: 14px; }
+    .actions-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-top: 2rem; }
+    .bottom-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    @media (max-width: 480px) { .bottom-actions { grid-template-columns: repeat(2, 1fr); } }
+    .sec-btn { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 9px 13px; font-size: 12px; font-family: 'Epilogue', sans-serif; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 500; transition: all 0.15s; }
+    .sec-btn:hover { border-color: var(--border2); color: var(--text); }
+    .copied-badge { font-size: 11px; color: var(--green); background: var(--green-light); padding: 4px 10px; border-radius: 100px; display: none; align-items: center; justify-content: center; gap: 4px; margin-top: 10px; }
+    .copied-badge.visible { display: inline-flex; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 1rem; }
+    .modal-overlay.visible { display: flex; }
+    .modal { background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 1.5rem; width: 100%; max-width: 360px; max-height: 90vh; overflow-y: auto; }
+    .modal h3 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.05em; margin-bottom: 1rem; }
+    .modal input { width: 100%; margin-bottom: 1rem; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .modal-cancel { background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 16px; font-size: 13px; font-family: 'Epilogue', sans-serif; color: var(--muted); cursor: pointer; font-weight: 500; }
+    .modal-confirm { background: var(--accent); border: none; border-radius: var(--radius-sm); padding: 8px 16px; font-size: 13px; font-family: 'Epilogue', sans-serif; color: #fff; cursor: pointer; font-weight: 600; }
+    .manage-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
+    .manage-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--surface2); border-radius: var(--radius-sm); font-size: 13px; }
+    .manage-del { background: none; border: 0.5px solid rgba(201,64,26,0.4); border-radius: 6px; padding: 3px 10px; font-size: 11px; font-family: 'Epilogue', sans-serif; color: var(--accent); cursor: pointer; font-weight: 500; }
+    .manage-del:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .sync-indicator { font-size: 10px; color: var(--hint); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 4px; }
+    .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    .sync-dot.syncing { background: var(--hint); animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .report-range-btn { background: var(--surface2); border: 0.5px solid var(--border); border-radius: 6px; padding: 5px 12px; font-size: 12px; font-family: 'Epilogue', sans-serif; color: var(--muted); cursor: pointer; font-weight: 500; transition: all 0.15s; }
+    .report-range-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .report-client-card { background: var(--surface2); border-radius: var(--radius-sm); padding: 10px 12px; }
+    .report-client-name { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    .report-client-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    .report-stat { font-size: 11px; color: var(--muted); }
+    .report-stat strong { display: block; font-size: 14px; font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.03em; }
+    .report-stat strong.red { color: var(--accent); }
+    .report-stat strong.green { color: var(--green); }
+    .footer { text-align: center; margin-top: 3rem; font-size: 12px; color: var(--muted); }
+    .footer a { color: var(--accent); text-decoration: none; font-weight: 600; }
+
+    /* Currency */
+    .top-controls { position: fixed; top: 1.25rem; right: 1.25rem; display: flex; gap: 6px; z-index: 100; }
+    .currency-select-btn { background: var(--surface); border: 0.5px solid var(--border2); border-radius: 100px; padding: 5px 12px; font-size: 12px; font-family: 'Epilogue', sans-serif; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 500; position: relative; }
+    .currency-dropdown { position: absolute; top: calc(100% + 6px); right: 0; background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); overflow: hidden; display: none; min-width: 300px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+    .currency-dropdown.open { display: block; }
+    .currency-option { padding: 9px 14px; font-size: 13px; font-family: 'Epilogue', sans-serif; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.1s; }
+    .currency-option:hover { background: var(--surface2); color: var(--text); }
+    .currency-option.active { color: var(--accent); font-weight: 600; }
+    .currency-dropdown #currencySearch { width: 100%; border: none; border-bottom: 0.5px solid var(--border2); background: var(--surface2); color: var(--text); font-family: 'Epilogue', sans-serif; font-size: 12px; padding: 9px 14px; outline: none; border-radius: 0; }
+    .currency-dropdown #currencyList { max-height: min(300px, 55vh); overflow-y: auto; display: flex; flex-direction: column; gap: 3px; padding: 4px; }
+    .currency-dropdown #currencyList .currency-option { border-radius: var(--radius-sm); line-height: 1.3; }
+    .currency-dropdown #currencyList .currency-option .cur-sym { min-width: 18px; display: inline-block; text-align: center; }
+
+    /* Sticky brand bar — appears after scrolling past the header */
+    .sticky-brand { position: fixed; top: 0; left: 0; right: 0; z-index: 90; background: var(--bg); border-bottom: 0.5px solid var(--border2); padding: 9px 1.25rem; display: flex; align-items: baseline; justify-content: center; gap: 10px; transform: translateY(-100%); transition: transform 0.25s ease; }
+    .sticky-brand.visible { transform: translateY(0); }
+    .sticky-brand .sb-logo { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 0.06em; color: var(--text); line-height: 1; }
+    .sticky-brand .sb-logo span { color: var(--accent); }
+    .sticky-brand .sb-eyebrow { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--hint); font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <span class="side-brand left">Bruder Motion</span>
+  <span class="side-brand right">Bruder Motion</span>
+
+  <div class="sticky-brand" id="stickyBrand">
+    <div class="sb-logo"><span>D</span>igi<span>T</span>ally</div>
+    <div class="sb-eyebrow">Bruder Motion</div>
+  </div>
+
+  <div class="top-controls">
+    <div class="currency-select-btn" id="currencyBtn">
+      <span id="currencyLabel">$ USD</span>
+      <div class="currency-dropdown" id="currencyDropdown">
+        <input type="text" id="currencySearch" placeholder="Search currency..." autocomplete="off" />
+        <div id="currencyList"></div>
+      </div>
+    </div>
+    <button class="ctrl-btn" id="themeToggle">Dark</button>
+  </div>
+
+  <!-- Loading Screen -->
+  <div id="loadingScreen" style="position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:0.1em;color:var(--hint);"><span style="color:var(--accent)">D</span>igi<span style="color:var(--accent)">T</span>ally</div>
+  </div>
+
+  <!-- Auth Screen -->
+  <div class="auth-screen" id="authScreen" style="display:none;">
+    <div class="auth-card">
+      <div class="auth-eyebrow">Bruder Motion</div>
+      <div class="auth-logo"><span class="accent">D</span>igi<span class="accent">T</span>ally</div>
+      <div class="auth-sub">Track what's owed. Know when it's due.</div>
+      <div class="auth-error" id="authError"></div>
+      <input type="email" class="auth-input" id="authEmail" placeholder="Email address" />
+      <div style="position:relative;margin-bottom:10px;">
+        <input type="password" class="auth-input" id="authPassword" placeholder="Password" style="padding-right:40px;margin-bottom:0;" />
+        <button id="togglePassword" type="button" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);padding:0;font-size:11px;font-family:'Epilogue',sans-serif;font-weight:600;letter-spacing:0.05em;">
+          <span id="togglePasswordIcon">SHOW</span>
+        </button>
+      </div>
+      <button class="auth-btn" id="authSubmitBtn">Sign In</button>
+      <button class="auth-btn secondary" id="authSwitchActionBtn">Create Account</button>
+      <div class="auth-toggle" id="authToggle">Don't have an account? <span id="authToggleLink">Sign up</span></div>
+    </div>
+  </div>
+
+  <!-- App Screen -->
+  <div class="app-screen" id="appScreen">
+    <div class="page">
+      <header class="header">
+        <div class="eyebrow">Bruder Motion</div>
+        <div class="header-top">
+          <h1><span>D</span>igi<span>T</span>ally</h1>
+        </div>
+        <div class="header-sub">Track what's owed. Know when it's due.</div>
+      </header>
+
+      <div class="user-bar-wrap">
+        <div class="user-bar">
+          <div class="user-email" id="userEmail"></div>
+          <button class="signout-btn" id="signOutBtn">Sign out</button>
+        </div>
+      </div>
+
+      <div class="sync-indicator"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">Synced</span></div>
+
+      <div class="clients-bar" id="clientsBar"></div>
+      <button class="manage-clients-btn" id="manageClientsBtn">Manage clients</button>
+
+      <!-- Client notes -->
+      <div id="clientNotesPanel" style="margin-bottom:1.5rem;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--hint);font-weight:600;">Add Notes About Your Clients</div>
+          <button id="notesToggleBtn" style="background:none;border:none;font-size:11px;color:var(--hint);cursor:pointer;font-family:'Epilogue',sans-serif;text-decoration:underline;">Show</button>
+        </div>
+        <div id="notesContent" style="display:none;">
+          <textarea id="clientNotesInput" placeholder="Private notes for this client — not shown on the PDF" style="width:100%;min-height:80px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;font-family:'Epilogue',sans-serif;color:var(--text);resize:vertical;outline:none;line-height:1.5;"></textarea>
+          <div style="font-size:11px;color:var(--hint);margin-top:4px;" id="notesSavedLabel"></div>
+        </div>
+      </div>
+
+      <div class="summary-bar">
+        <div class="summary-item"><div class="summary-num red" id="totalOwed">0</div><div class="summary-label">Total Owed</div></div>
+        <div class="summary-item"><div class="summary-num green" id="totalPaid">0</div><div class="summary-label">Paid</div></div>
+        <div class="summary-item"><div class="summary-num" id="totalEntries">0</div><div class="summary-label">Entries</div></div>
+      </div>
+
+      <div class="add-form">
+        <div class="form-label">Add Entry</div>
+        <div class="form-row">
+          <div class="field"><div class="field-label">Description</div><input type="text" id="entryName" placeholder="e.g. Video edit — Reel #4" /></div>
+          <div class="field"><div class="field-label">Amount</div><input type="number" id="entryAmount" placeholder="0.00" class="amount-input" min="0" step="0.01" /></div>
+          <button class="add-btn" id="addBtn"><i class="ti ti-plus"></i> Add</button>
+        </div>
+      </div>
+
+      <div class="period-row">
+        <div class="period-label">View by</div>
+        <div class="period-tabs">
+          <button class="period-tab active" data-val="all">All</button>
+          <button class="period-tab" data-val="week">This Week</button>
+          <button class="period-tab" data-val="month">This Month</button>
+        </div>
+      </div>
+
+      <div class="entries-list" id="entriesList"></div>
+
+      <div class="actions-card">
+        <div class="form-label">Actions</div>
+        <div class="bottom-actions">
+          <button class="sec-btn" id="copyBtn"><i class="ti ti-copy"></i> Copy summary</button>
+          <button class="sec-btn" id="exportBtn"><i class="ti ti-download"></i> Export CSV</button>
+          <button class="sec-btn" id="invoiceBtn"><i class="ti ti-file-invoice"></i> Invoice / Receipt</button>
+          <button class="sec-btn" id="reportBtn"><i class="ti ti-share"></i> Share Report</button>
+          <button class="sec-btn" id="markAllPaidBtn"><i class="ti ti-circle-check"></i> Mark all paid</button>
+          <button class="sec-btn" id="clearPaidBtn"><i class="ti ti-trash"></i> Delete paid</button>
+        </div>
+        <span class="copied-badge" id="copiedBadge"><i class="ti ti-check"></i> Copied</span>
+      </div>
+
+      <footer class="footer">
+        <p>Built by <a href="https://github.com/letmebuildappz" target="_blank">Bruder Motion</a> — open source, data synced to cloud.</p>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Onboarding: choose billing currency -->
+  <div class="modal-overlay" id="onboardOverlay">
+    <div class="modal" style="max-width:380px;">
+      <h3>Choose Currency</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.5;">Pick the currency you mostly work in. You can set any client to a different currency anytime.</p>
+      <input type="text" id="onboardSearch" placeholder="Search currency..." autocomplete="off" style="margin-bottom:8px;" />
+      <div id="onboardList" style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;"></div>
+      <div class="modal-actions">
+        <button class="modal-confirm" id="onboardConfirm" disabled>Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add client modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h3>New Client</h3>
+      <input type="text" id="newClientName" placeholder="Client or project name..." />
+      <p style="font-size:12px;color:var(--hint);margin:8px 0 0;line-height:1.5;">If this client uses a different currency, change it from the top right first.</p>
+      <div class="modal-actions">
+        <button class="modal-cancel" id="modalCancel">Cancel</button>
+        <button class="modal-confirm" id="modalConfirm">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit entry modal -->
+  <div class="modal-overlay" id="editOverlay">
+    <div class="modal">
+      <h3>Edit Entry</h3>
+      <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Description</div>
+      <input type="text" id="editName" placeholder="Description..." />
+      <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Amount</div>
+      <input type="number" id="editAmount" placeholder="0.00" min="0" step="0.01" />
+      <div class="modal-actions">
+        <button class="modal-cancel" id="editCancel">Cancel</button>
+        <button class="modal-confirm" id="editConfirm">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invoice modal -->
+  <div class="modal-overlay" id="invoiceOverlay">
+    <div class="modal" style="max-width:400px;">
+      <h3>Invoice / Receipt</h3>
+      <div style="display:flex;gap:6px;margin-bottom:1rem;">
+        <button class="report-range-btn active" id="modeInvoice" style="flex:1;">Invoice</button>
+        <button class="report-range-btn" id="modeReceipt" style="flex:1;">Receipt</button>
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:1rem;" id="invoiceSummaryLabel"></p>
+      <div id="invoiceItemsSection" style="margin-bottom:1rem;">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Line Items</div>
+        <div id="invoiceItemsList" style="display:flex;flex-direction:column;gap:6px;max-height:160px;overflow-y:auto;"></div>
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          <button class="modal-cancel" id="invoiceSelectAll" style="flex:1;font-size:11px;padding:5px;">Select All</button>
+          <button class="modal-cancel" id="invoiceSelectNone" style="flex:1;font-size:11px;padding:5px;">Clear</button>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Your Business</div>
+      <input type="text" id="invBizName" placeholder="Business / your name" style="margin-bottom:8px;" />
+      <input type="text" id="invBizContact" placeholder="Email or phone (optional)" style="margin-bottom:8px;" />
+      <textarea id="invBizPayment" placeholder="Payment details — e.g. Zelle: you@mail.com" style="width:100%;min-height:60px;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;font-size:13px;font-family:'Epilogue',sans-serif;color:var(--text);resize:vertical;outline:none;margin-bottom:1rem;"></textarea>
+      <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Bill To — Client Details</div>
+      <input type="text" id="cdName" placeholder="Client name" style="margin-bottom:8px;" />
+      <input type="text" id="cdNumber" placeholder="Phone / number (optional)" style="margin-bottom:8px;" />
+      <input type="text" id="cdEmail" placeholder="Email (optional)" style="margin-bottom:8px;" />
+      <input type="text" id="cdCountry" placeholder="Country (optional)" style="margin-bottom:8px;" />
+      <textarea id="cdAddress" placeholder="Address (optional)" style="width:100%;min-height:50px;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;font-size:13px;font-family:'Epilogue',sans-serif;color:var(--text);resize:vertical;outline:none;margin-bottom:1rem;"></textarea>
+      <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;" id="invDateLabel">Due Date</div>
+      <input type="date" id="invDueDate" />
+      <div class="modal-actions">
+        <button class="modal-cancel" id="invoiceCancel">Cancel</button>
+        <button class="modal-confirm" id="invoiceGenerate"><i class="ti ti-download"></i> Download PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report modal -->
+  <div class="modal-overlay" id="reportOverlay">
+    <div class="modal" style="max-width:420px;">
+      <h3>Report</h3>
+
+      <!-- Active links section -->
+      <div id="activeReportLinksSection" style="display:none;margin-bottom:1rem;">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Active Shared Links</div>
+        <div id="activeReportLinksList" style="display:flex;flex-direction:column;gap:6px;max-height:140px;overflow-y:auto;"></div>
+        <div style="height:0.5px;background:var(--border);margin-top:1rem;"></div>
+      </div>
+
+      <div style="margin-bottom:1rem;">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Date Range</div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+          <button class="report-range-btn active" data-range="this_month">This Month</button>
+          <button class="report-range-btn" data-range="last_month">Last Month</button>
+          <button class="report-range-btn" data-range="custom">Custom</button>
+        </div>
+        <div id="reportCustomDates" style="display:none;gap:8px;display:none;">
+          <div style="display:flex;gap:8px;">
+            <div style="flex:1;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">From</div><input type="date" id="reportDateFrom" style="width:100%;" /></div>
+            <div style="flex:1;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">To</div><input type="date" id="reportDateTo" style="width:100%;" /></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:1rem;">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">Clients</div>
+        <div id="reportClientList" style="display:flex;flex-direction:column;gap:6px;max-height:150px;overflow-y:auto;"></div>
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          <button class="modal-cancel" id="reportSelectAll" style="flex:1;font-size:11px;padding:5px;">Select All</button>
+          <button class="modal-cancel" id="reportSelectNone" style="flex:1;font-size:11px;padding:5px;">Clear</button>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-bottom:1rem;">
+        <button class="modal-cancel" id="reportCancel">Cancel</button>
+        <button class="modal-confirm" id="reportGenerate"><i class="ti ti-chart-bar"></i> Generate</button>
+      </div>
+
+      <!-- Report output -->
+      <div id="reportOutput" style="display:none;">
+        <div style="height:0.5px;background:var(--border);margin-bottom:1rem;"></div>
+        <div id="reportResults" style="display:flex;flex-direction:column;gap:10px;margin-bottom:1rem;max-height:240px;overflow-y:auto;"></div>
+        <button class="modal-confirm" id="reportShareBtn" style="width:100%;"><i class="ti ti-link"></i> Generate Share Link</button>
+        <div id="reportLinkBox" style="display:none;margin-top:10px;">
+          <div style="display:flex;gap:6px;">
+            <input type="text" id="reportLinkInput" readonly style="flex:1;font-size:12px;color:var(--muted);" />
+            <button class="modal-confirm" id="reportLinkCopy" style="padding:8px 14px;white-space:nowrap;flex-shrink:0;"><i class="ti ti-copy"></i> Copy</button>
+          </div>
+          <button class="modal-cancel" id="reportLinkRevoke" style="width:100%;margin-top:8px;color:var(--accent);border-color:rgba(201,64,26,0.4);font-size:12px;">Revoke Link</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export modal -->
+  <div class="modal-overlay" id="exportOverlay">
+    <div class="modal">
+      <h3>Export CSV</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:1rem;">Choose which clients to export.</p>
+      <div id="exportClientList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:1rem;max-height:200px;overflow-y:auto;"></div>
+      <div style="display:flex;gap:8px;margin-bottom:1rem;">
+        <button class="modal-cancel" id="exportSelectAll" style="flex:1;font-size:12px;">Select All</button>
+        <button class="modal-cancel" id="exportSelectNone" style="flex:1;font-size:12px;">Clear</button>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-cancel" id="exportCancel">Cancel</button>
+        <button class="modal-confirm" id="exportConfirm"><i class="ti ti-download"></i> Download</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Share View Screen (read-only) -->
+  <div id="reportShareScreen" style="display:none;">
+    <div class="page">
+      <header class="header">
+        <div class="eyebrow">Bruder Motion</div>
+        <div class="header-top"><h1><span>D</span>igi<span>T</span>ally</h1></div>
+        <div class="header-sub" id="reportShareDateLabel"></div>
+      </header>
+      <div id="reportShareResults" style="display:flex;flex-direction:column;gap:10px;margin-bottom:2rem;"></div>
+      <footer class="footer">
+        <p>Built by <a href="https://github.com/letmebuildappz" target="_blank">Bruder Motion</a> — shared report, read-only</p>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Share View Screen (read-only) -->
+  <div id="shareScreen" style="display:none;">
+    <div class="page">
+      <header class="header">
+        <div class="eyebrow">Bruder Motion</div>
+        <div class="header-top">
+          <h1><span>D</span>igi<span>T</span>ally</h1>
+        </div>
+        <div class="header-sub" id="shareClientLabel">Shared view — read only</div>
+      </header>
+      <div class="summary-bar">
+        <div class="summary-item"><div class="summary-num red" id="shareTotalOwed">0</div><div class="summary-label">Total Owed</div></div>
+        <div class="summary-item"><div class="summary-num green" id="shareTotalPaid">0</div><div class="summary-label">Paid</div></div>
+        <div class="summary-item"><div class="summary-num" id="shareTotalEntries">0</div><div class="summary-label">Entries</div></div>
+      </div>
+      <div class="entries-list" id="shareEntriesList"></div>
+      <footer class="footer" style="margin-top:2rem;">
+        <p>Built by <a href="https://github.com/letmebuildappz" target="_blank">Bruder Motion</a> — read-only shared view</p>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Share link modal -->
+  <div class="modal-overlay" id="shareLinkOverlay" style="z-index:300;">
+    <div class="modal">
+      <h3>Share Client</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:1rem;">Generate a read-only link for <strong id="shareLinkClientName"></strong>. Anyone with the link can view but not edit.</p>
+      <div id="shareLinkBox" style="display:none;margin-bottom:1rem;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500;">Share link</div>
+        <div style="display:flex;gap:6px;">
+          <input type="text" id="shareLinkInput" readonly style="flex:1;font-size:12px;color:var(--muted);" />
+          <button class="modal-confirm" id="shareLinkCopy" style="padding:8px 14px;white-space:nowrap;flex-shrink:0;"><i class="ti ti-copy"></i> Copy</button>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-cancel" id="shareLinkCancel">Close</button>
+        <button class="modal-confirm" id="shareLinkGenerate"><i class="ti ti-link"></i> Generate Link</button>
+        <button class="modal-cancel" id="shareLinkRevoke" style="display:none;color:var(--accent);border-color:rgba(201,64,26,0.4);">Revoke</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manage clients modal -->
+  <div class="modal-overlay" id="manageClientsOverlay">
+    <div class="modal" style="max-width:480px;">
+      <h3>Manage Clients</h3>
+      <div class="manage-list" id="manageClientsList" style="max-height:240px;overflow-y:auto;"></div>
+      <div class="modal-actions"><button class="modal-cancel" id="manageClientsClose">Close</button></div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBhc8tB-rOLRQJo_XlojD6r7kzo4jL8bH4",
+      authDomain: "digitally-f5b58.firebaseapp.com",
+      projectId: "digitally-f5b58",
+      storageBucket: "digitally-f5b58.firebasestorage.app",
+      messagingSenderId: "229135950127",
+      appId: "1:229135950127:web:66bf9ae913b27b2bfb81da"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // ── State ──────────────────────────────────────────────
+    let state = { clients: ['Personal'], activeClient: 'Personal', entries: {}, period: 'all' };
+    let currentUser = null;
+    let unsubscribe = null;
+
+    // ── Currency ───────────────────────────────────────────
+    // Symbols for the original four are pinned so their look never changes;
+    // every other currency uses the browser's native formatter.
+    const SYMBOL_OVERRIDES = { USD: '$', INR: '₹', PKR: '₨', BDT: '৳' };
+    const COMMON = ['USD', 'INR', 'PKR', 'BDT', 'EUR', 'GBP', 'CNY', 'JPY', 'AED', 'SAR', 'CAD', 'AUD'];
+    const FALLBACK_RATES = { USD: 1, INR: 83.5, PKR: 278.5, BDT: 122.8 };
+    let activeCurrency = localStorage.getItem('udhaar_last_currency') || 'USD';
+    let exchangeRates = JSON.parse(localStorage.getItem('udhaar_rates') || 'null') || FALLBACK_RATES;
+    let ratesLastFetched = parseInt(localStorage.getItem('udhaar_rates_ts') || '0');
+
+    async function fetchRates() {
+      const now = Date.now();
+      if (now - ratesLastFetched < 3600000 && exchangeRates !== FALLBACK_RATES && Object.keys(exchangeRates).length > 8) { buildCurrencyList(); return; }
+      try {
+        const res = await fetch('https://open.er-api.com/v6/latest/USD');
+        if (!res.ok) throw new Error('err');
+        const data = await res.json();
+        if (data && data.rates) {
+          exchangeRates = data.rates; // full global set, USD-based
+          ratesLastFetched = now;
+          localStorage.setItem('udhaar_rates', JSON.stringify(exchangeRates));
+          localStorage.setItem('udhaar_rates_ts', now.toString());
+        }
+        buildCurrencyList();
+        render();
+      } catch (e) { buildCurrencyList(); }
+    }
+
+    // Convert an amount from one currency to another (rates are units-per-USD).
+    function convertCur(amount, from, to) {
+      from = from || 'USD'; to = to || 'USD';
+      if (from === to) return Number(amount);
+      const rf = exchangeRates[from] || FALLBACK_RATES[from] || 1;
+      const rt = exchangeRates[to] || FALLBACK_RATES[to] || 1;
+      return Number(amount) * (rt / rf);
+    }
+    function curOf(e) { return e.currency || 'USD'; }
+    function entryInActive(e) { return convertCur(e.amount, curOf(e), activeCurrency); }
+
+    function symbolOf(code) {
+      if (SYMBOL_OVERRIDES[code]) return SYMBOL_OVERRIDES[code];
+      try {
+        const parts = new Intl.NumberFormat(undefined, { style: 'currency', currency: code, currencyDisplay: 'narrowSymbol' }).formatToParts(0);
+        const s = parts.find(p => p.type === 'currency');
+        return s ? s.value : code;
+      } catch (e) { return code; }
+    }
+    function currencyName(code) {
+      try { return new Intl.DisplayNames(['en'], { type: 'currency' }).of(code) || code; }
+      catch (e) { return code; }
+    }
+
+    // Format a number that is already in the active currency.
+    function fmtActive(v) {
+      const sym = symbolOf(activeCurrency);
+      const num = Math.round(Number(v) * 100) / 100;
+      const formatted = num % 1 === 0 ? num.toLocaleString('en-US') : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return sym + formatted;
+    }
+    // Format an amount, converting from its source currency (default: already active).
+    function formatAmount(amount, fromCur) {
+      return fmtActive(convertCur(Number(amount), fromCur || activeCurrency, activeCurrency));
+    }
+
+    // Each client shows in its own currency: an explicit pick wins, else the
+    // currency its entries were typed in, else the last-used (placeholder for empty clients).
+    function resolveClientCurrency(client) {
+      if (state.clientCurrency && state.clientCurrency[client]) return state.clientCurrency[client];
+      const entries = (state.entries && state.entries[client]) || [];
+      if (entries.length && entries[0].currency) return entries[0].currency;
+      return state.billingCurrency || localStorage.getItem('udhaar_last_currency') || 'USD';
+    }
+
+    function applyActiveCurrency() {
+      document.getElementById('currencyLabel').textContent = symbolOf(activeCurrency) + ' ' + activeCurrency;
+      document.querySelectorAll('#currencyList .currency-option').forEach(opt => opt.classList.toggle('active', opt.dataset.code === activeCurrency));
+    }
+
+    function buildCurrencyList(filter) {
+      const list = document.getElementById('currencyList');
+      if (!list) return;
+      const codes = Object.keys(exchangeRates);
+      const common = COMMON.filter(c => codes.includes(c));
+      const rest = codes.filter(c => !COMMON.includes(c)).sort();
+      const ordered = [...common, ...rest];
+      const q = (filter || '').trim().toLowerCase();
+      list.innerHTML = '';
+      ordered.forEach(code => {
+        const name = currencyName(code);
+        if (q && !(code.toLowerCase().includes(q) || name.toLowerCase().includes(q))) return;
+        const opt = document.createElement('div');
+        opt.className = 'currency-option' + (code === activeCurrency ? ' active' : '');
+        opt.dataset.code = code;
+        opt.innerHTML = `<span class="cur-sym">${symbolOf(code)}</span> ${name} <span style="opacity:.5;margin-left:auto;font-size:11px;">${code}</span>`;
+        opt.style.justifyContent = 'flex-start';
+        list.appendChild(opt);
+      });
+    }
+
+    const currencyBtn = document.getElementById('currencyBtn');
+    const currencyDropdown = document.getElementById('currencyDropdown');
+    const currencySearch = document.getElementById('currencySearch');
+    currencyBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const opening = !currencyDropdown.classList.contains('open');
+      currencyDropdown.classList.toggle('open');
+      if (opening) { currencySearch.value = ''; buildCurrencyList(); setTimeout(() => currencySearch.focus(), 0); }
+    });
+    currencyDropdown.addEventListener('click', e => e.stopPropagation());
+    currencySearch.addEventListener('input', () => buildCurrencyList(currencySearch.value));
+    document.getElementById('currencyList').addEventListener('click', async e => {
+      const opt = e.target.closest('.currency-option');
+      if (!opt) return;
+      activeCurrency = opt.dataset.code;
+      localStorage.setItem('udhaar_last_currency', activeCurrency);
+      if (state.activeClient && currentUser) {
+        if (!state.clientCurrency) state.clientCurrency = {};
+        state.clientCurrency[state.activeClient] = activeCurrency;
+        saveToCloud();
+      }
+      applyActiveCurrency();
+      currencyDropdown.classList.remove('open');
+      await fetchRates();
+      render();
+    });
+    document.addEventListener('click', () => currencyDropdown.classList.remove('open'));
+    fetchRates().then(() => { buildCurrencyList(); applyActiveCurrency(); });
+    applyActiveCurrency();
+
+    // ── Onboarding: choose billing currency (first time only) ──
+    let onboardPick = null;
+    let onboardingChecked = false;
+
+    function buildOnboardList(filter) {
+      const list = document.getElementById('onboardList');
+      if (!list) return;
+      const codes = Object.keys(exchangeRates);
+      const common = COMMON.filter(c => codes.includes(c));
+      const rest = codes.filter(c => !COMMON.includes(c)).sort();
+      const ordered = [...common, ...rest];
+      const q = (filter || '').trim().toLowerCase();
+      list.innerHTML = '';
+      ordered.forEach(code => {
+        const name = currencyName(code);
+        if (q && !(code.toLowerCase().includes(q) || name.toLowerCase().includes(q))) return;
+        const opt = document.createElement('div');
+        opt.className = 'currency-option' + (code === onboardPick ? ' active' : '');
+        opt.dataset.code = code;
+        opt.style.cssText = 'border-radius:var(--radius-sm);justify-content:flex-start;cursor:pointer;';
+        opt.innerHTML = `<span class="cur-sym" style="min-width:18px;display:inline-block;text-align:center;">${symbolOf(code)}</span> ${name} <span style="opacity:.5;margin-left:auto;font-size:11px;">${code}</span>`;
+        list.appendChild(opt);
+      });
+    }
+
+    async function openOnboarding() {
+      await fetchRates();
+      onboardPick = state.billingCurrency || activeCurrency || 'USD';
+      document.getElementById('onboardSearch').value = '';
+      buildOnboardList();
+      document.getElementById('onboardConfirm').disabled = !onboardPick;
+      document.getElementById('onboardOverlay').classList.add('visible');
+    }
+
+    function maybeOnboard() {
+      if (onboardingChecked || !currentUser) return;
+      onboardingChecked = true;
+      if (!state.billingCurrency) openOnboarding();
+    }
+
+    document.getElementById('onboardSearch').addEventListener('input', e => buildOnboardList(e.target.value));
+    document.getElementById('onboardList').addEventListener('click', e => {
+      const opt = e.target.closest('.currency-option');
+      if (!opt) return;
+      onboardPick = opt.dataset.code;
+      document.querySelectorAll('#onboardList .currency-option').forEach(o => o.classList.toggle('active', o.dataset.code === onboardPick));
+      document.getElementById('onboardConfirm').disabled = false;
+    });
+    document.getElementById('onboardConfirm').addEventListener('click', async () => {
+      if (!onboardPick) return;
+      state.billingCurrency = onboardPick;
+      localStorage.setItem('udhaar_last_currency', onboardPick);
+      if (state.activeClient) {
+        const hasEntries = (state.entries[state.activeClient] || []).length;
+        if (!hasEntries) { if (!state.clientCurrency) state.clientCurrency = {}; state.clientCurrency[state.activeClient] = onboardPick; }
+      }
+      activeCurrency = onboardPick;
+      saveToCloud();
+      document.getElementById('onboardOverlay').classList.remove('visible');
+      await fetchRates();
+      applyActiveCurrency();
+      render();
+    });
+
+    // ── Theme ──────────────────────────────────────────────
+    const themeToggle = document.getElementById('themeToggle');
+    let isDark = localStorage.getItem('udhaar_theme') === 'dark';
+    function applyTheme() {
+      document.body.classList.toggle('dark', isDark);
+      themeToggle.textContent = isDark ? 'Light' : 'Dark';
+    }
+    applyTheme();
+    themeToggle.addEventListener('click', () => { isDark = !isDark; localStorage.setItem('udhaar_theme', isDark ? 'dark' : 'light'); applyTheme(); });
+
+    // ── Firestore sync ─────────────────────────────────────
+    function setSyncing(on) {
+      document.getElementById('syncDot').className = 'sync-dot' + (on ? ' syncing' : '');
+      document.getElementById('syncLabel').textContent = on ? 'Syncing...' : 'Synced';
+    }
+
+    async function saveToCloud() {
+      if (!currentUser) return;
+      setSyncing(true);
+      try {
+        await setDoc(doc(db, 'users', currentUser.uid), { state: JSON.stringify(state) });
+        localStorage.setItem('digitally_cache_' + currentUser.uid, JSON.stringify(state));
+      } catch(e) {}
+      setSyncing(false);
+    }
+
+    let firstLoad = true;
+    function listenToCloud(uid) {
+      if (unsubscribe) unsubscribe();
+      firstLoad = true;
+      // Load from cache instantly while waiting for Firestore
+      const cached = localStorage.getItem('digitally_cache_' + uid);
+      if (cached) {
+        try {
+          state = JSON.parse(cached);
+          renderClients();
+          render();
+        } catch(e) {}
+      }
+      unsubscribe = onSnapshot(doc(db, 'users', uid), snap => {
+        if (snap.exists()) {
+          try {
+            const data = JSON.parse(snap.data().state);
+            state = data;
+            localStorage.setItem('digitally_cache_' + uid, JSON.stringify(state));
+            renderClients();
+            render();
+            maybeOnboard();
+          } catch(e) {}
+        } else if (firstLoad) {
+          // new account, modal already opened via auth metadata
+        }
+        firstLoad = false;
+      });
+    }
+
+    // ── Auth ───────────────────────────────────────────────
+    let isSignUp = false;
+
+    document.getElementById('authToggleLink').addEventListener('click', () => {
+      isSignUp = !isSignUp;
+      document.getElementById('authSubmitBtn').textContent = isSignUp ? 'Create Account' : 'Sign In';
+      document.getElementById('authSwitchActionBtn').textContent = isSignUp ? 'Sign In Instead' : 'Create Account';
+      document.getElementById('authToggle').innerHTML = isSignUp ? 'Already have an account? <span id="authToggleLink">Sign in</span>' : 'Don\'t have an account? <span id="authToggleLink">Sign up</span>';
+      document.getElementById('authError').classList.remove('visible');
+      document.getElementById('authToggleLink').addEventListener('click', arguments.callee);
+    });
+
+    document.getElementById('authSwitchActionBtn').addEventListener('click', () => {
+      isSignUp = !isSignUp;
+      document.getElementById('authSubmitBtn').textContent = isSignUp ? 'Create Account' : 'Sign In';
+      document.getElementById('authSwitchActionBtn').textContent = isSignUp ? 'Sign In Instead' : 'Create Account';
+    });
+
+    document.getElementById('authSubmitBtn').addEventListener('click', async () => {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value.trim();
+      const errEl = document.getElementById('authError');
+      errEl.classList.remove('visible');
+      if (!email || !password) { errEl.textContent = 'Please enter email and password.'; errEl.classList.add('visible'); return; }
+      try {
+        if (isSignUp) {
+          await createUserWithEmailAndPassword(auth, email, password);
+        } else {
+          await signInWithEmailAndPassword(auth, email, password);
+        }
+      } catch(e) {
+        errEl.textContent = e.message.replace('Firebase: ', '').replace(/\(auth\/.*\)/, '').trim();
+        errEl.classList.add('visible');
+      }
+    });
+
+    document.getElementById('togglePassword').addEventListener('click', () => {
+      const input = document.getElementById('authPassword');
+      const icon = document.getElementById('togglePasswordIcon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.textContent = 'HIDE';
+      } else {
+        input.type = 'password';
+        icon.textContent = 'SHOW';
+      }
+    });
+
+    document.getElementById('authPassword').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('authSubmitBtn').click(); });
+
+    document.getElementById('signOutBtn').addEventListener('click', async () => {
+      if (unsubscribe) unsubscribe();
+      await signOut(auth);
+    });
+
+    // Check for share link first — skip auth entirely if it's a share URL
+    const isShareView = await checkShareView();
+    if (!isShareView) {
+    onAuthStateChanged(auth, user => {
+      document.getElementById('loadingScreen').style.display = 'none';
+      currentUser = user;
+      if (user) {
+        onboardingChecked = false;
+        document.getElementById('authScreen').style.display = 'none';
+        document.getElementById('appScreen').classList.add('visible');
+        document.getElementById('userEmail').textContent = user.email;
+        // Brand new account — creation time and last sign-in time match
+        const isNewUser = !localStorage.getItem('digitally_seen_' + user.uid);
+        if (isNewUser) {
+          localStorage.setItem('digitally_seen_' + user.uid, '1');
+          document.getElementById('modalOverlay').classList.add('visible');
+        }
+        listenToCloud(user.uid);
+        // Quietly record last-opened time (server clock) for usage insight
+        try {
+          setDoc(doc(db, 'activity', user.uid), { email: user.email, lastOpened: serverTimestamp() });
+        } catch (e) {}
+      } else {
+        document.getElementById('authScreen').style.display = 'flex';
+        document.getElementById('appScreen').classList.remove('visible');
+        if (unsubscribe) unsubscribe();
+        state = { clients: ['Personal'], activeClient: 'Personal', entries: {}, period: 'all' };
+      }
+    });
+    } // end !isShareView
+
+    // ── Client helpers ─────────────────────────────────────
+    function clientEntries() { return state.entries[state.activeClient] || []; }
+    function setClientEntries(arr) { state.entries[state.activeClient] = arr; saveToCloud(); }
+
+    // ── Period ─────────────────────────────────────────────
+    document.querySelectorAll('.period-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.period-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.period = btn.dataset.val;
+        render();
+      });
+    });
+
+    function inPeriod(entry) {
+      if (state.period === 'all') return true;
+      const now = new Date(); const d = new Date(entry.date);
+      if (state.period === 'week') { const start = new Date(now); start.setDate(now.getDate() - now.getDay()); start.setHours(0,0,0,0); return d >= start; }
+      if (state.period === 'month') { return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); }
+      return true;
+    }
+
+    // ── Clients ────────────────────────────────────────────
+    function renderClients() {
+      const bar = document.getElementById('clientsBar');
+      bar.innerHTML = '';
+      state.clients.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'client-tab' + (c === state.activeClient ? ' active' : '');
+        btn.textContent = c;
+        btn.addEventListener('click', () => { state.activeClient = c; saveToCloud(); renderClients(); render();
+          if (document.getElementById('notesContent').style.display !== 'none') loadNotes();
+        });
+        bar.appendChild(btn);
+      });
+      const addBtn = document.createElement('button');
+      addBtn.className = 'add-client-btn';
+      addBtn.innerHTML = '<i class="ti ti-plus"></i> New client';
+      addBtn.addEventListener('click', () => document.getElementById('modalOverlay').classList.add('visible'));
+      bar.appendChild(addBtn);
+      const mgBtn = document.getElementById('manageClientsBtn');
+      mgBtn.style.display = state.clients.length > 1 ? 'inline-block' : 'none';
+    }
+
+    document.getElementById('manageClientsBtn').addEventListener('click', () => { renderManageClients(); document.getElementById('manageClientsOverlay').classList.add('visible'); });
+    document.getElementById('manageClientsClose').addEventListener('click', () => document.getElementById('manageClientsOverlay').classList.remove('visible'));
+
+    function renameClient(oldName, newName) {
+      newName = (newName || '').trim();
+      if (!newName || newName === oldName) return false;
+      if (state.clients.includes(newName)) return false;
+      const idx = state.clients.indexOf(oldName);
+      if (idx === -1) return false;
+      state.clients[idx] = newName;
+      ['entries', 'notes', 'clientDetails', 'shares', 'clientCurrency'].forEach(key => {
+        if (state[key] && Object.prototype.hasOwnProperty.call(state[key], oldName)) {
+          state[key][newName] = state[key][oldName];
+          delete state[key][oldName];
+        }
+      });
+      if (state.activeClient === oldName) state.activeClient = newName;
+      saveToCloud(); renderClients(); render(); renderManageClients();
+      return true;
+    }
+
+    function renderManageClients() {
+      const list = document.getElementById('manageClientsList');
+      list.innerHTML = '';
+      state.clients.forEach(c => {
+        const row = document.createElement('div');
+        row.className = 'manage-row';
+        const name = document.createElement('span');
+        name.textContent = c; name.style.cssText = 'font-weight:500;flex:1;min-width:0;margin-right:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        name.title = c;
+        row.appendChild(name);
+        const actions = document.createElement('div');
+        actions.style.cssText = 'display:flex;gap:6px;flex-shrink:0;';
+        const shareBtn = document.createElement('button');
+        shareBtn.className = 'manage-del';
+        shareBtn.style.cssText = 'border-color:rgba(0,0,0,0.2);color:var(--muted);';
+        shareBtn.innerHTML = '<i class="ti ti-share"></i> Share';
+        shareBtn.title = 'Share';
+        shareBtn.addEventListener('click', () => openShareModal(c));
+        const renameBtn = document.createElement('button');
+        renameBtn.className = 'manage-del';
+        renameBtn.style.cssText = 'border-color:rgba(0,0,0,0.2);color:var(--muted);';
+        renameBtn.innerHTML = '<i class="ti ti-pencil"></i> Rename';
+        renameBtn.title = 'Rename';
+        renameBtn.addEventListener('click', () => {
+          const input = document.createElement('input');
+          input.type = 'text'; input.value = c;
+          input.style.cssText = 'flex:1;margin-right:8px;font-size:13px;padding:5px 8px;';
+          row.replaceChild(input, name);
+          input.focus(); input.select();
+          actions.innerHTML = '';
+          const saveBtn = document.createElement('button');
+          saveBtn.className = 'manage-del';
+          saveBtn.style.cssText = 'border-color:var(--green);color:var(--green);';
+          saveBtn.textContent = 'Save';
+          const cancelBtn = document.createElement('button');
+          cancelBtn.className = 'manage-del';
+          cancelBtn.style.cssText = 'border-color:rgba(0,0,0,0.2);color:var(--muted);';
+          cancelBtn.textContent = 'Cancel';
+          const doSave = () => {
+            const v = input.value.trim();
+            if (!v || v === c) { renderManageClients(); return; }
+            if (state.clients.includes(v)) { input.style.borderColor = 'var(--accent)'; input.focus(); return; }
+            renameClient(c, v);
+          };
+          saveBtn.addEventListener('click', doSave);
+          cancelBtn.addEventListener('click', () => renderManageClients());
+          input.addEventListener('keydown', e => { if (e.key === 'Enter') doSave(); else if (e.key === 'Escape') renderManageClients(); });
+          actions.appendChild(saveBtn);
+          actions.appendChild(cancelBtn);
+        });
+        const delBtn = document.createElement('button');
+        delBtn.className = 'manage-del'; delBtn.textContent = 'Delete';
+        delBtn.addEventListener('click', () => {
+          const count = (state.entries[c] || []).length;
+          const msg = count
+            ? `Delete "${c}" and its ${count} entr${count === 1 ? 'y' : 'ies'}? This cannot be undone.`
+            : `Delete "${c}"? This cannot be undone.`;
+          if (!confirm(msg)) return;
+          state.clients = state.clients.filter(x => x !== c);
+          delete state.entries[c];
+          if (state.clientCurrency) delete state.clientCurrency[c];
+          if (state.activeClient === c) state.activeClient = state.clients[0];
+          saveToCloud(); renderClients(); render(); renderManageClients();
+          if (state.clients.length <= 1) document.getElementById('manageClientsOverlay').classList.remove('visible');
+        });
+        actions.appendChild(shareBtn);
+        actions.appendChild(renameBtn);
+        actions.appendChild(delBtn);
+        row.appendChild(actions);
+        list.appendChild(row);
+      });
+    }
+
+    document.getElementById('modalCancel').addEventListener('click', () => { document.getElementById('modalOverlay').classList.remove('visible'); document.getElementById('newClientName').value = ''; });
+    document.getElementById('modalConfirm').addEventListener('click', addClient);
+    document.getElementById('newClientName').addEventListener('keydown', e => { if (e.key === 'Enter') addClient(); });
+
+    function addClient() {
+      const name = document.getElementById('newClientName').value.trim();
+      if (!name) return;
+      if (!state.clients.includes(name)) state.clients.push(name);
+      state.activeClient = name;
+      document.getElementById('modalOverlay').classList.remove('visible');
+      document.getElementById('newClientName').value = '';
+      saveToCloud(); renderClients(); render();
+    }
+
+    // ── Add entry ──────────────────────────────────────────
+    document.getElementById('addBtn').addEventListener('click', addEntry);
+    document.getElementById('entryAmount').addEventListener('keydown', e => { if (e.key === 'Enter') addEntry(); });
+
+    function addEntry() {
+      const name = document.getElementById('entryName').value.trim();
+      const amount = parseFloat(document.getElementById('entryAmount').value);
+      if (!name || isNaN(amount) || amount <= 0) return;
+      const entries = clientEntries();
+      entries.unshift({ id: Date.now(), name, amount, currency: activeCurrency, date: new Date().toISOString(), paid: false });
+      if (!state.clientCurrency) state.clientCurrency = {};
+      if (!state.clientCurrency[state.activeClient]) state.clientCurrency[state.activeClient] = activeCurrency;
+      localStorage.setItem('udhaar_last_currency', activeCurrency);
+      setClientEntries(entries);
+      document.getElementById('entryName').value = '';
+      document.getElementById('entryAmount').value = '';
+      render();
+    }
+
+    // ── Edit entry ─────────────────────────────────────────
+    let editEntryId = null;
+
+    function openEditModal(id) {
+      const entry = clientEntries().find(e => e.id === id);
+      if (!entry) return;
+      editEntryId = id;
+      document.getElementById('editName').value = entry.name;
+      document.getElementById('editAmount').value = entry.amount;
+      document.getElementById('editOverlay').classList.add('visible');
+      document.getElementById('editName').focus();
+    }
+
+    function saveEdit() {
+      if (editEntryId === null) return;
+      const name = document.getElementById('editName').value.trim();
+      const amount = parseFloat(document.getElementById('editAmount').value);
+      if (!name || isNaN(amount) || amount <= 0) return;
+      const entries = clientEntries();
+      const entry = entries.find(e => e.id === editEntryId);
+      if (entry) {
+        if (entry.name !== name || entry.amount !== amount) {
+          entry.name = name; entry.amount = amount;
+          entry.editedAt = new Date().toISOString();
+        }
+        setClientEntries(entries);
+      }
+      document.getElementById('editOverlay').classList.remove('visible');
+      editEntryId = null;
+      render();
+    }
+
+    document.getElementById('editCancel').addEventListener('click', () => { document.getElementById('editOverlay').classList.remove('visible'); editEntryId = null; });
+    document.getElementById('editConfirm').addEventListener('click', saveEdit);
+    document.getElementById('editAmount').addEventListener('keydown', e => { if (e.key === 'Enter') saveEdit(); });
+    document.getElementById('editName').addEventListener('keydown', e => { if (e.key === 'Enter') saveEdit(); });
+
+    // ── Notes ──────────────────────────────────────────────
+    let notesSaveTimer = null;
+
+    function loadNotes() {
+      const notes = (state.notes && state.notes[state.activeClient]) || '';
+      document.getElementById('clientNotesInput').value = notes;
+      document.getElementById('notesSavedLabel').textContent = '';
+    }
+
+    document.getElementById('notesToggleBtn').addEventListener('click', () => {
+      const content = document.getElementById('notesContent');
+      const btn = document.getElementById('notesToggleBtn');
+      const visible = content.style.display !== 'none';
+      content.style.display = visible ? 'none' : 'block';
+      btn.textContent = visible ? 'Show' : 'Hide';
+      if (!visible) loadNotes();
+      requestAnimationFrame(snapToLines);
+    });
+
+    document.getElementById('clientNotesInput').addEventListener('input', () => {
+      clearTimeout(notesSaveTimer);
+      document.getElementById('notesSavedLabel').textContent = 'Saving...';
+      notesSaveTimer = setTimeout(() => {
+        if (!state.notes) state.notes = {};
+        state.notes[state.activeClient] = document.getElementById('clientNotesInput').value;
+        saveToCloud();
+        document.getElementById('notesSavedLabel').textContent = 'Saved';
+        setTimeout(() => { document.getElementById('notesSavedLabel').textContent = ''; }, 2000);
+      }, 800);
+    });
+
+    // ── Render ─────────────────────────────────────────────
+    function render() {
+      const _scrollY = window.scrollY;
+      if (state.activeClient) { activeCurrency = resolveClientCurrency(state.activeClient); applyActiveCurrency(); }
+      const allEntries = clientEntries();
+      const filtered = allEntries.filter(inPeriod);
+      const owed = filtered.filter(e => !e.paid).reduce((s, e) => s + entryInActive(e), 0);
+      const paid = filtered.filter(e => e.paid).reduce((s, e) => s + entryInActive(e), 0);
+      document.getElementById('totalOwed').textContent = formatAmount(owed);
+      document.getElementById('totalPaid').textContent = formatAmount(paid);
+      document.getElementById('totalEntries').textContent = filtered.length;
+      const allPaidNow = filtered.length > 0 && filtered.every(e => e.paid);
+      document.getElementById('markAllPaidBtn').innerHTML = allPaidNow
+        ? '<i class="ti ti-circle-x"></i> Mark all unpaid'
+        : '<i class="ti ti-circle-check"></i> Mark all paid';
+
+      const groups = {};
+      filtered.forEach(e => { const key = groupKey(e.date); if (!groups[key]) groups[key] = []; groups[key].push(e); });
+      const list = document.getElementById('entriesList');
+      list.innerHTML = '';
+
+      if (filtered.length === 0) {
+        list.innerHTML = '<div class="empty-state"><i class="ti ti-notebook"></i><p>No entries yet. Add the first one above.</p></div>';
+        requestAnimationFrame(() => { snapToLines(); window.scrollTo(0, _scrollY); });
+        return;
+      }
+
+      Object.keys(groups).forEach(key => {
+        const items = groups[key];
+        const groupTotal = items.reduce((s, e) => s + entryInActive(e), 0);
+        const header = document.createElement('div');
+        header.className = 'group-header';
+        header.innerHTML = `<span>${key}</span><span class="group-total">${formatAmount(groupTotal)}</span>`;
+        list.appendChild(header);
+        items.forEach(entry => {
+          const item = document.createElement('div');
+          item.className = 'entry-item' + (entry.paid ? ' paid' : '');
+          const qtyLabel = (entry.qty && entry.qty > 1) ? `${entry.qty}x ${formatAmount(entry.unitPrice, curOf(entry))} · ` : '';
+          item.innerHTML = `
+            <div class="entry-check ${entry.paid ? 'checked' : ''}" data-id="${entry.id}"></div>
+            <div class="entry-info editable" data-edit="${entry.id}">
+              <div class="entry-name">${escHtml(entry.name)}</div>
+              <div class="entry-meta">${qtyLabel}${formatDate(entry.date)}${editedTag(entry)}</div>
+            </div>
+            <div class="entry-amount editable" data-edit="${entry.id}">${formatAmount(entry.amount, curOf(entry))}</div>
+            <button class="entry-edit" data-edit="${entry.id}" title="Edit"><i class="ti ti-pencil"></i></button>
+            <button class="entry-delete" data-id="${entry.id}" title="Delete"><i class="ti ti-x"></i></button>
+          `;
+          list.appendChild(item);
+        });
+      });
+
+      list.querySelectorAll('.entry-check').forEach(el => {
+        el.addEventListener('click', () => {
+          const id = parseInt(el.dataset.id);
+          const entries = clientEntries();
+          const entry = entries.find(e => e.id === id);
+          if (entry) { entry.paid = !entry.paid; setClientEntries(entries); render(); }
+        });
+      });
+
+      list.querySelectorAll('.entry-delete').forEach(el => {
+        el.addEventListener('click', () => {
+          const id = parseInt(el.dataset.id);
+          setClientEntries(clientEntries().filter(e => e.id !== id));
+          render();
+        });
+      });
+
+      list.querySelectorAll('[data-edit]').forEach(el => {
+        el.addEventListener('click', () => openEditModal(parseInt(el.dataset.edit)));
+      });
+
+      requestAnimationFrame(() => { snapToLines(); window.scrollTo(0, _scrollY); });
+    }
+
+    // ── Actions ────────────────────────────────────────────
+    document.getElementById('markAllPaidBtn').addEventListener('click', () => {
+      const entries = clientEntries();
+      const inP = entries.filter(inPeriod);
+      if (!inP.length) return;
+      const allPaid = inP.every(e => e.paid);
+      entries.forEach(e => { if (inPeriod(e)) e.paid = !allPaid; });
+      setClientEntries(entries); render();
+    });
+
+    document.getElementById('clearPaidBtn').addEventListener('click', () => {
+      const paidCount = clientEntries().filter(e => e.paid).length;
+      if (!paidCount) return;
+      if (!confirm(`Delete ${paidCount} paid entr${paidCount === 1 ? 'y' : 'ies'}? This cannot be undone.`)) return;
+      setClientEntries(clientEntries().filter(e => !e.paid)); render();
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const filtered = clientEntries().filter(inPeriod);
+      const owed = filtered.filter(e => !e.paid).reduce((s, e) => s + entryInActive(e), 0);
+      const paid = filtered.filter(e => e.paid).reduce((s, e) => s + entryInActive(e), 0);
+      let text = `DigiTally — ${state.activeClient}\nPeriod: ${state.period === 'all' ? 'All time' : state.period === 'week' ? 'This week' : 'This month'}\n\n`;
+      filtered.forEach(e => { text += `${e.paid ? '[PAID]' : '[OWED]'} ${e.name} — ${formatAmount(e.amount, curOf(e))} (${formatDate(e.date)})\n`; });
+      text += `\nTotal owed: ${formatAmount(owed)}\nTotal paid: ${formatAmount(paid)}`;
+      navigator.clipboard.writeText(text).then(() => {
+        const badge = document.getElementById('copiedBadge');
+        badge.classList.add('visible');
+        setTimeout(() => badge.classList.remove('visible'), 2000);
+      });
+    });
+
+    // ── Export CSV ─────────────────────────────────────────
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const list = document.getElementById('exportClientList');
+      list.innerHTML = '';
+      state.clients.forEach(c => {
+        const row = document.createElement('label');
+        row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface2);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;font-family:Epilogue,sans-serif;color:var(--text);';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox'; cb.value = c; cb.checked = true;
+        cb.style.cssText = 'accent-color:var(--accent);width:15px;height:15px;cursor:pointer;';
+        row.appendChild(cb);
+        row.appendChild(document.createTextNode(c));
+        list.appendChild(row);
+      });
+      document.getElementById('exportOverlay').classList.add('visible');
+    });
+
+    document.getElementById('exportCancel').addEventListener('click', () => document.getElementById('exportOverlay').classList.remove('visible'));
+
+    document.getElementById('exportSelectAll').addEventListener('click', () => {
+      document.querySelectorAll('#exportClientList input').forEach(cb => cb.checked = true);
+    });
+    document.getElementById('exportSelectNone').addEventListener('click', () => {
+      document.querySelectorAll('#exportClientList input').forEach(cb => cb.checked = false);
+    });
+
+    document.getElementById('exportConfirm').addEventListener('click', () => {
+      const selected = [...document.querySelectorAll('#exportClientList input:checked')].map(cb => cb.value);
+      if (!selected.length) return;
+      let csv = 'Client,Description,Amount,Currency,Date,Status\n';
+      selected.forEach(client => {
+        const entries = state.entries[client] || [];
+        entries.forEach(e => {
+          const desc = `"${e.name.replace(/"/g, '""')}"`;
+          const date = formatDate(e.date);
+          const status = e.paid ? 'Paid' : 'Owed';
+          csv += `"${client}",${desc},${e.amount},${curOf(e)},${date},${status}\n`;
+        });
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `DigiTally_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      document.getElementById('exportOverlay').classList.remove('visible');
+    });
+
+    // ── Invoice PDF ────────────────────────────────────────
+    function pdfMoney(n, fromCur) {
+      const c = convertCur(Number(n), fromCur || activeCurrency, activeCurrency);
+      const f = c % 1 === 0 ? c.toLocaleString('en-US') : c.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return activeCurrency === 'USD' ? '$' + f : activeCurrency + ' ' + f;
+    }
+
+    function selectedInvoiceEntries() {
+      const ids = [...document.querySelectorAll('#invoiceItemsList input:checked')].map(cb => parseInt(cb.value));
+      return clientEntries().filter(e => ids.includes(e.id));
+    }
+
+    let docMode = 'invoice';
+
+    function invoiceSourceEntries() {
+      const all = clientEntries();
+      return docMode === 'receipt' ? all.filter(e => e.paid) : all.filter(e => !e.paid);
+    }
+
+    function buildInvoiceItems() {
+      const src = invoiceSourceEntries();
+      const list = document.getElementById('invoiceItemsList');
+      list.innerHTML = '';
+      src.forEach(e => {
+        const row = document.createElement('label');
+        row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface2);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;font-family:Epilogue,sans-serif;color:var(--text);';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox'; cb.value = e.id; cb.checked = true;
+        cb.style.cssText = 'accent-color:var(--accent);width:15px;height:15px;cursor:pointer;flex-shrink:0;';
+        cb.addEventListener('change', updateInvoiceSummary);
+        const nm = document.createElement('span');
+        nm.textContent = e.name; nm.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        const amt = document.createElement('span');
+        amt.textContent = pdfMoney(e.amount, curOf(e)); amt.style.cssText = 'color:var(--muted);flex-shrink:0;';
+        row.appendChild(cb); row.appendChild(nm); row.appendChild(amt);
+        list.appendChild(row);
+      });
+      document.getElementById('invoiceItemsSection').style.display = src.length ? 'block' : 'none';
+    }
+
+    function updateInvoiceSummary() {
+      const sel = selectedInvoiceEntries();
+      const total = sel.reduce((s, e) => s + entryInActive(e), 0);
+      const anySrc = invoiceSourceEntries().length > 0;
+      const label = document.getElementById('invoiceSummaryLabel');
+      const c = escHtml(state.activeClient);
+      if (docMode === 'receipt') {
+        if (!anySrc) label.innerHTML = `No paid entries for <strong>${c}</strong>. Nothing to receipt yet.`;
+        else if (sel.length) label.innerHTML = `Payment receipt for <strong>${c}</strong> — ${sel.length} paid entr${sel.length === 1 ? 'y' : 'ies'}, total <strong>${pdfMoney(total)}</strong>.`;
+        else label.innerHTML = `Select at least one paid item for <strong>${c}</strong>.`;
+      } else {
+        if (!anySrc) label.innerHTML = `No unpaid entries for <strong>${c}</strong>. Nothing to invoice.`;
+        else if (sel.length) label.innerHTML = `Formal invoice for <strong>${c}</strong> — ${sel.length} entr${sel.length === 1 ? 'y' : 'ies'}, total <strong>${pdfMoney(total)}</strong>. Bill To uses the client details below.`;
+        else label.innerHTML = `Select at least one line item to invoice <strong>${c}</strong>.`;
+      }
+      document.getElementById('invoiceGenerate').style.display = sel.length ? 'inline-flex' : 'none';
+    }
+
+    function applyDocMode() {
+      document.getElementById('modeInvoice').classList.toggle('active', docMode === 'invoice');
+      document.getElementById('modeReceipt').classList.toggle('active', docMode === 'receipt');
+      document.getElementById('invDateLabel').textContent = docMode === 'receipt' ? 'Paid On' : 'Due Date';
+      const d = new Date();
+      if (docMode === 'invoice') d.setDate(d.getDate() + 7);
+      document.getElementById('invDueDate').value = d.toISOString().slice(0, 10);
+      buildInvoiceItems();
+      updateInvoiceSummary();
+    }
+
+    document.getElementById('modeInvoice').addEventListener('click', () => { docMode = 'invoice'; applyDocMode(); });
+    document.getElementById('modeReceipt').addEventListener('click', () => { docMode = 'receipt'; applyDocMode(); });
+
+    document.getElementById('invoiceBtn').addEventListener('click', () => {
+      docMode = 'invoice';
+      const b = state.business || {};
+      document.getElementById('invBizName').value = b.name || '';
+      document.getElementById('invBizContact').value = b.contact || '';
+      document.getElementById('invBizPayment').value = b.payment || '';
+      const cd = (state.clientDetails && state.clientDetails[state.activeClient]) || {};
+      document.getElementById('cdName').value = cd.name || state.activeClient;
+      document.getElementById('cdNumber').value = cd.number || '';
+      document.getElementById('cdEmail').value = cd.email || '';
+      document.getElementById('cdCountry').value = cd.country || '';
+      document.getElementById('cdAddress').value = cd.address || '';
+      applyDocMode();
+      document.getElementById('invoiceOverlay').classList.add('visible');
+    });
+
+    document.getElementById('invoiceSelectAll').addEventListener('click', () => {
+      document.querySelectorAll('#invoiceItemsList input').forEach(cb => cb.checked = true);
+      updateInvoiceSummary();
+    });
+    document.getElementById('invoiceSelectNone').addEventListener('click', () => {
+      document.querySelectorAll('#invoiceItemsList input').forEach(cb => cb.checked = false);
+      updateInvoiceSummary();
+    });
+
+    document.getElementById('invoiceCancel').addEventListener('click', () => document.getElementById('invoiceOverlay').classList.remove('visible'));
+
+    document.getElementById('invoiceGenerate').addEventListener('click', () => {
+      const unpaid = selectedInvoiceEntries();
+      if (!unpaid.length) return;
+
+      // Save business info + bump invoice counter (synced to cloud)
+      state.business = {
+        name: document.getElementById('invBizName').value.trim(),
+        contact: document.getElementById('invBizContact').value.trim(),
+        payment: document.getElementById('invBizPayment').value.trim(),
+      };
+      if (!state.clientDetails) state.clientDetails = {};
+      state.clientDetails[state.activeClient] = {
+        name: document.getElementById('cdName').value.trim(),
+        number: document.getElementById('cdNumber').value.trim(),
+        email: document.getElementById('cdEmail').value.trim(),
+        country: document.getElementById('cdCountry').value.trim(),
+        address: document.getElementById('cdAddress').value.trim(),
+      };
+      const isReceipt = docMode === 'receipt';
+      if (isReceipt) {
+        state.receiptCounter = (state.receiptCounter || 0) + 1;
+      } else {
+        state.invoiceCounter = (state.invoiceCounter || 0) + 1;
+      }
+      const docNo = (isReceipt ? 'RCT-' : 'INV-') + String((isReceipt ? state.receiptCounter : state.invoiceCounter)).padStart(4, '0');
+      saveToCloud();
+
+      const dueRaw = document.getElementById('invDueDate').value;
+      const dueStr = dueRaw ? new Date(dueRaw + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'On receipt';
+      const todayStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
+      const W = 595.28, H = 841.89, M = 56;
+      const INK = [24, 22, 15], MUTED = [122, 117, 104], HINT = [176, 172, 159], ACCENT = [201, 64, 26], GREEN = [26, 107, 58];
+      const TITLE_COLOR = isReceipt ? GREEN : ACCENT;
+
+      function pageBg() { pdf.setFillColor(247, 244, 239); pdf.rect(0, 0, W, H, 'F'); }
+      pageBg();
+      let y = 70;
+
+      // Header — business eyebrow
+      pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8); pdf.setTextColor(HINT[0], HINT[1], HINT[2]);
+      pdf.text((state.business.name || 'DigiTally').toUpperCase(), M, y, { charSpace: 2 });
+      y += 34;
+      // Title + number
+      pdf.setFontSize(32); pdf.setTextColor(INK[0], INK[1], INK[2]);
+      const titleText = isReceipt ? 'RECEIPT' : 'INVOICE';
+      pdf.text(titleText, M, y);
+      const titleW = pdf.getTextWidth(titleText);
+      pdf.setFontSize(13); pdf.setTextColor(TITLE_COLOR[0], TITLE_COLOR[1], TITLE_COLOR[2]);
+      pdf.text(docNo, M + titleW + 12, y);
+      // Right meta
+      pdf.setFont('helvetica', 'normal'); pdf.setFontSize(10); pdf.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+      pdf.text('Date: ' + todayStr, W - M, y - 16, { align: 'right' });
+      pdf.text((isReceipt ? 'Paid: ' : 'Due: ') + dueStr, W - M, y, { align: 'right' });
+      // Business contact
+      if (state.business.contact) {
+        y += 18;
+        pdf.setFontSize(10); pdf.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+        pdf.text(state.business.contact, M, y);
+      }
+
+      y += 40;
+      // Party — built from structured client details (not the private note)
+      pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8); pdf.setTextColor(HINT[0], HINT[1], HINT[2]);
+      pdf.text(isReceipt ? 'RECEIPT FOR' : 'BILL TO', M, y, { charSpace: 2 });
+      y += 16;
+      const cd = (state.clientDetails && state.clientDetails[state.activeClient]) || {};
+      pdf.setFont('helvetica', 'bold'); pdf.setFontSize(13); pdf.setTextColor(INK[0], INK[1], INK[2]);
+      pdf.text(cd.name || state.activeClient, M, y);
+      const detailLines = [];
+      if (cd.number) detailLines.push(cd.number);
+      if (cd.email) detailLines.push(cd.email);
+      if (cd.country) detailLines.push(cd.country);
+      if (cd.address) cd.address.split('\n').forEach(l => { if (l.trim()) detailLines.push(l); });
+      if (detailLines.length) {
+        pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9); pdf.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+        detailLines.forEach(line => {
+          pdf.splitTextToSize(line, 280).forEach(w => {
+            if (y > H - 120) { pdf.addPage(); pageBg(); y = 70; }
+            y += 13; pdf.text(w, M, y);
+          });
+        });
+      }
+
+      y += 32;
+      // Items table
+      function tableHeader() {
+        pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8); pdf.setTextColor(HINT[0], HINT[1], HINT[2]);
+        pdf.text('DESCRIPTION', M, y, { charSpace: 1.5 });
+        pdf.text('DATE', W - M - 150, y, { charSpace: 1.5 });
+        pdf.text('AMOUNT', W - M, y, { align: 'right', charSpace: 1.5 });
+        y += 8;
+        pdf.setDrawColor(INK[0], INK[1], INK[2]); pdf.setLineWidth(0.8);
+        pdf.line(M, y, W - M, y);
+        y += 18;
+      }
+      tableHeader();
+
+      pdf.setFont('helvetica', 'normal'); pdf.setFontSize(10);
+      unpaid.forEach(e => {
+        if (y > H - 200) {
+          pdf.addPage(); pageBg(); y = 70; tableHeader();
+          pdf.setFont('helvetica', 'normal'); pdf.setFontSize(10);
+        }
+        let nm = e.name; if (nm.length > 48) nm = nm.slice(0, 46) + '...';
+        pdf.setTextColor(INK[0], INK[1], INK[2]);
+        pdf.text(nm, M, y);
+        pdf.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+        pdf.text(formatDate(e.date), W - M - 150, y);
+        pdf.setTextColor(INK[0], INK[1], INK[2]);
+        pdf.text(pdfMoney(e.amount, curOf(e)), W - M, y, { align: 'right' });
+        if (e.editedAt) {
+          pdf.setFontSize(7); pdf.setTextColor(HINT[0], HINT[1], HINT[2]);
+          pdf.text('edited ' + parseLocalDate(e.editedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }), M, y + 11);
+          pdf.setFontSize(10);
+          y += 11;
+        }
+        y += 20;
+      });
+
+      const invTotal = unpaid.reduce((s, e) => s + entryInActive(e), 0);
+      y += 4;
+      pdf.setDrawColor(INK[0], INK[1], INK[2]); pdf.setLineWidth(0.8);
+      pdf.line(M, y, W - M, y);
+      y += 24;
+      pdf.setFont('helvetica', 'bold'); pdf.setFontSize(9); pdf.setTextColor(HINT[0], HINT[1], HINT[2]);
+      pdf.text(isReceipt ? 'TOTAL PAID' : 'TOTAL DUE', W - M, y, { align: 'right', charSpace: 2 });
+      y += 22;
+      pdf.setFontSize(18); pdf.setTextColor(TITLE_COLOR[0], TITLE_COLOR[1], TITLE_COLOR[2]);
+      pdf.text(pdfMoney(invTotal), W - M, y, { align: 'right' });
+      if (isReceipt) {
+        y += 16;
+        pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8); pdf.setTextColor(GREEN[0], GREEN[1], GREEN[2]);
+        pdf.text('PAID IN FULL', W - M, y, { align: 'right', charSpace: 2 });
+      }
+
+      // Payment details
+      if (state.business.payment) {
+        y += 42;
+        if (y > H - 120) { pdf.addPage(); pageBg(); y = 70; }
+        pdf.setFontSize(8); pdf.setTextColor(HINT[0], HINT[1], HINT[2]);
+        pdf.text('PAYMENT DETAILS', M, y, { charSpace: 2 });
+        pdf.setFont('helvetica', 'normal'); pdf.setFontSize(10); pdf.setTextColor(INK[0], INK[1], INK[2]);
+        state.business.payment.split('\n').slice(0, 4).forEach(l => { y += 15; pdf.text(l, M, y); });
+      }
+
+      // Footer
+      pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8); pdf.setTextColor(HINT[0], HINT[1], HINT[2]);
+      pdf.text('Generated with DigiTally — Bruder Motion', W / 2, H - 40, { align: 'center' });
+
+      pdf.save(docNo + '_' + state.activeClient.replace(/[^a-z0-9]/gi, '_') + '.pdf');
+      document.getElementById('invoiceOverlay').classList.remove('visible');
+    });
+
+    // ── Share Link ─────────────────────────────────────────
+    let shareTargetClient = null;
+
+    async function openShareModal(clientName) {
+      shareTargetClient = clientName;
+      document.getElementById('shareLinkClientName').textContent = clientName;
+      document.getElementById('shareLinkBox').style.display = 'none';
+      document.getElementById('shareLinkRevoke').style.display = 'none';
+      document.getElementById('shareLinkGenerate').style.display = 'inline-flex';
+      // Check if share already exists
+      const existing = state.shares && state.shares[clientName];
+      if (existing) {
+        const url = `${location.origin}${location.pathname}?share=${existing}`;
+        document.getElementById('shareLinkInput').value = url;
+        document.getElementById('shareLinkBox').style.display = 'block';
+        document.getElementById('shareLinkRevoke').style.display = 'inline-flex';
+        document.getElementById('shareLinkGenerate').innerHTML = 'Regenerate';
+      } else {
+        document.getElementById('shareLinkGenerate').innerHTML = '<i class="ti ti-link"></i> Generate Link';
+      }
+      document.getElementById('shareLinkOverlay').classList.add('visible');
+    }
+
+    document.getElementById('shareLinkCancel').addEventListener('click', () => document.getElementById('shareLinkOverlay').classList.remove('visible'));
+
+    document.getElementById('shareLinkGenerate').addEventListener('click', async () => {
+      if (!shareTargetClient || !currentUser) return;
+      const token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+      const url = `${location.origin}${location.pathname}?share=${token}`;
+      // Update UI instantly
+      document.getElementById('shareLinkInput').value = url;
+      document.getElementById('shareLinkBox').style.display = 'block';
+      document.getElementById('shareLinkRevoke').style.display = 'inline-flex';
+      document.getElementById('shareLinkGenerate').innerHTML = 'Regenerate';
+      // Write to Firestore in background
+      const entries = state.entries[shareTargetClient] || [];
+      if (!state.shares) state.shares = {};
+      state.shares[shareTargetClient] = token;
+      setDoc(doc(db, 'shares', token), { uid: currentUser.uid, client: shareTargetClient, entries: JSON.stringify(entries) });
+      saveToCloud();
+    });
+
+    document.getElementById('shareLinkRevoke').addEventListener('click', async () => {
+      if (!shareTargetClient || !state.shares) return;
+      const token = state.shares[shareTargetClient];
+      // Update UI instantly
+      document.getElementById('shareLinkBox').style.display = 'none';
+      document.getElementById('shareLinkRevoke').style.display = 'none';
+      document.getElementById('shareLinkGenerate').innerHTML = '<i class="ti ti-link"></i> Generate Link';
+      document.getElementById('shareLinkOverlay').classList.remove('visible');
+      // Delete from Firestore in background
+      delete state.shares[shareTargetClient];
+      if (token) deleteDoc(doc(db, 'shares', token));
+      saveToCloud();
+    });
+
+    document.getElementById('shareLinkCopy').addEventListener('click', () => {
+      navigator.clipboard.writeText(document.getElementById('shareLinkInput').value).then(() => {
+        document.getElementById('shareLinkCopy').innerHTML = '<i class="ti ti-check"></i> Copied';
+        setTimeout(() => { document.getElementById('shareLinkCopy').innerHTML = '<i class="ti ti-copy"></i> Copy'; }, 2000);
+      });
+    });
+
+    // ── Share view (read-only) ─────────────────────────────
+    async function checkShareView() {
+      const params = new URLSearchParams(location.search);
+      const shareToken = params.get('share');
+      const reportToken = params.get('report');
+
+      if (reportToken) {
+        try {
+          const snap = await getDoc(doc(db, 'reports', reportToken));
+          document.getElementById('loadingScreen').style.display = 'none';
+          document.getElementById('reportShareScreen').style.display = 'block';
+          if (!snap.exists()) {
+            document.getElementById('reportShareDateLabel').textContent = 'This report link is no longer valid.';
+            return true;
+          }
+          const data = snap.data();
+          const from = new Date(data.from); const to = new Date(data.to);
+          const clientsData = JSON.parse(data.clients || '{}');
+          document.getElementById('reportShareDateLabel').textContent =
+            `${from.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} — ${to.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
+          const results = document.getElementById('reportShareResults');
+          results.innerHTML = '';
+          Object.entries(clientsData).forEach(([client, entries]) => {
+            if (entries.length && entries[0].currency) { activeCurrency = entries[0].currency; }
+            const owed = entries.filter(e => !e.paid).reduce((s,e) => s+entryInActive(e), 0);
+            const paid = entries.filter(e => e.paid).reduce((s,e) => s+entryInActive(e), 0);
+            const card = document.createElement('div');
+            card.className = 'report-client-card';
+            // Summary header
+            let html = `
+              <div class="report-client-name">${escHtml(client)}</div>
+              <div class="report-client-stats">
+                <div class="report-stat"><strong class="red">${formatAmount(owed)}</strong>Owed</div>
+                <div class="report-stat"><strong class="green">${formatAmount(paid)}</strong>Paid</div>
+                <div class="report-stat"><strong>${entries.length}</strong>Entries</div>
+              </div>
+            `;
+            // Entry list
+            if (entries.length) {
+              html += `<div style="margin-top:10px;display:flex;flex-direction:column;gap:5px;">`;
+              entries.forEach(e => {
+                html += `
+                  <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface);border-radius:var(--radius-sm);border:0.5px solid var(--border);opacity:${e.paid ? '0.5' : '1'};">
+                    <div style="flex:1;font-size:13px;font-weight:500;${e.paid ? 'text-decoration:line-through;' : ''}">${escHtml(e.name)}</div>
+                    <div style="font-size:11px;color:var(--hint);">${formatDate(e.date)}</div>
+                    <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:${e.paid ? 'var(--green)' : 'var(--accent)'};">${formatAmount(e.amount, curOf(e))}</div>
+                  </div>`;
+              });
+              html += `</div>`;
+            }
+            card.innerHTML = html;
+            results.appendChild(card);
+          });
+        } catch(e) {}
+        return true;
+      }
+
+      if (!shareToken) return false;
+      try {
+        const snap = await getDoc(doc(db, 'shares', shareToken));
+        if (!snap.exists()) {
+          document.getElementById('loadingScreen').style.display = 'none';
+          document.getElementById('shareScreen').style.display = 'block';
+          document.getElementById('shareClientLabel').textContent = 'This link is no longer valid.';
+          return true;
+        }
+        const data = snap.data();
+        const entries = JSON.parse(data.entries || '[]');
+        if (entries.length && entries[0].currency) { activeCurrency = entries[0].currency; applyActiveCurrency(); }
+        document.getElementById('loadingScreen').style.display = 'none';
+        document.getElementById('shareScreen').style.display = 'block';
+        document.getElementById('shareClientLabel').textContent = `${data.client} — read-only shared view`;
+        const owed = entries.filter(e => !e.paid).reduce((s,e) => s+entryInActive(e), 0);
+        const paid = entries.filter(e => e.paid).reduce((s,e) => s+entryInActive(e), 0);
+        document.getElementById('shareTotalOwed').textContent = formatAmount(owed);
+        document.getElementById('shareTotalPaid').textContent = formatAmount(paid);
+        document.getElementById('shareTotalEntries').textContent = entries.length;
+        const list = document.getElementById('shareEntriesList');
+        list.innerHTML = '';
+        if (!entries.length) {
+          list.innerHTML = '<div class="empty-state"><i class="ti ti-notebook"></i><p>No entries.</p></div>';
+        } else {
+          entries.forEach(entry => {
+            const item = document.createElement('div');
+            item.className = 'entry-item' + (entry.paid ? ' paid' : '');
+            item.innerHTML = `
+              <div class="entry-check ${entry.paid ? 'checked' : ''}" style="pointer-events:none;"></div>
+              <div class="entry-info">
+                <div class="entry-name">${escHtml(entry.name)}</div>
+                <div class="entry-meta">${formatDate(entry.date)}${editedTag(entry)}</div>
+              </div>
+              <div class="entry-amount">${formatAmount(entry.amount, curOf(entry))}</div>
+            `;
+            list.appendChild(item);
+          });
+        }
+        return true;
+      } catch(e) { return false; }
+    }
+
+    // ── Report ─────────────────────────────────────────────
+    let reportRange = 'this_month';
+
+    function renderActiveReportLinks() {
+      const links = state.reportLinks || [];
+      const section = document.getElementById('activeReportLinksSection');
+      const list = document.getElementById('activeReportLinksList');
+      list.innerHTML = '';
+      if (!links.length) { section.style.display = 'none'; return; }
+      section.style.display = 'block';
+      links.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border-radius:var(--radius-sm);font-size:12px;';
+        const label = document.createElement('div');
+        label.style.cssText = 'flex:1;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        label.textContent = `${item.clients.join(', ')} — ${item.label}`;
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'manage-del';
+        copyBtn.style.cssText = 'border-color:rgba(0,0,0,0.2);color:var(--muted);white-space:nowrap;';
+        copyBtn.textContent = 'Copy';
+        copyBtn.addEventListener('click', () => {
+          const url = `${location.origin}${location.pathname}?report=${item.token}`;
+          navigator.clipboard.writeText(url).then(() => { copyBtn.textContent = 'Copied!'; setTimeout(() => copyBtn.textContent = 'Copy', 2000); });
+        });
+        const revokeBtn = document.createElement('button');
+        revokeBtn.className = 'manage-del';
+        revokeBtn.style.cssText = 'color:var(--accent);border-color:rgba(201,64,26,0.4);white-space:nowrap;';
+        revokeBtn.textContent = 'Revoke';
+        revokeBtn.addEventListener('click', async () => {
+          // Update UI instantly
+          state.reportLinks.splice(idx, 1);
+          renderActiveReportLinks();
+          // Delete in background
+          deleteDoc(doc(db, 'reports', item.token));
+          saveToCloud();
+        });
+        row.appendChild(label);
+        row.appendChild(copyBtn);
+        row.appendChild(revokeBtn);
+        list.appendChild(row);
+      });
+    }
+
+    document.getElementById('reportBtn').addEventListener('click', () => {
+      const list = document.getElementById('reportClientList');
+      list.innerHTML = '';
+      state.clients.forEach(c => {
+        const row = document.createElement('label');
+        row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:7px 12px;background:var(--surface2);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;font-family:Epilogue,sans-serif;color:var(--text);';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox'; cb.value = c; cb.checked = true;
+        cb.style.cssText = 'accent-color:var(--accent);width:15px;height:15px;cursor:pointer;';
+        row.appendChild(cb);
+        row.appendChild(document.createTextNode(c));
+        list.appendChild(row);
+      });
+      document.getElementById('reportOutput').style.display = 'none';
+      document.getElementById('reportLinkBox').style.display = 'none';
+      document.getElementById('reportShareBtn').innerHTML = '<i class="ti ti-link"></i> Generate Share Link';
+      renderActiveReportLinks();
+      document.getElementById('reportOverlay').classList.add('visible');
+      // Set default dates for custom range
+      const now = new Date();
+      document.getElementById('reportDateFrom').value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+      document.getElementById('reportDateTo').value = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+    });
+
+    document.getElementById('reportCancel').addEventListener('click', () => document.getElementById('reportOverlay').classList.remove('visible'));
+
+    document.querySelectorAll('.report-range-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.report-range-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        reportRange = btn.dataset.range;
+        document.getElementById('reportCustomDates').style.display = reportRange === 'custom' ? 'block' : 'none';
+      });
+    });
+
+    document.getElementById('reportSelectAll').addEventListener('click', () => document.querySelectorAll('#reportClientList input').forEach(cb => cb.checked = true));
+    document.getElementById('reportSelectNone').addEventListener('click', () => document.querySelectorAll('#reportClientList input').forEach(cb => cb.checked = false));
+
+    document.getElementById('reportGenerate').addEventListener('click', () => {
+      const selected = [...document.querySelectorAll('#reportClientList input:checked')].map(cb => cb.value);
+      if (!selected.length) return;
+
+      const now = new Date();
+      let from, to;
+      if (reportRange === 'this_month') {
+        from = new Date(now.getFullYear(), now.getMonth(), 1);
+        to = new Date(now.getFullYear(), now.getMonth()+1, 0, 23, 59, 59);
+      } else if (reportRange === 'last_month') {
+        from = new Date(now.getFullYear(), now.getMonth()-1, 1);
+        to = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+      } else {
+        from = new Date(document.getElementById('reportDateFrom').value);
+        to = new Date(document.getElementById('reportDateTo').value);
+        to.setHours(23, 59, 59);
+      }
+
+      const results = document.getElementById('reportResults');
+      results.innerHTML = '';
+      let reportText = `DigiTally Report\n${from.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} — ${to.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}\n\n`;
+
+      selected.forEach(client => {
+        const entries = (state.entries[client] || []).filter(e => { const d = new Date(e.date); return d >= from && d <= to; });
+        const owed = entries.filter(e => !e.paid).reduce((s,e) => s+entryInActive(e), 0);
+        const paid = entries.filter(e => e.paid).reduce((s,e) => s+entryInActive(e), 0);
+        const total = owed + paid;
+
+        const card = document.createElement('div');
+        card.className = 'report-client-card';
+        card.innerHTML = `
+          <div class="report-client-name">${escHtml(client)}</div>
+          <div class="report-client-stats">
+            <div class="report-stat"><strong class="red">${formatAmount(owed)}</strong>Owed</div>
+            <div class="report-stat"><strong class="green">${formatAmount(paid)}</strong>Paid</div>
+            <div class="report-stat"><strong>${entries.length}</strong>Entries</div>
+          </div>
+        `;
+        results.appendChild(card);
+        reportText += `${client}\n  Owed: ${formatAmount(owed)} | Paid: ${formatAmount(paid)} | Entries: ${entries.length}\n\n`;
+      });
+
+      document.getElementById('reportOutput').style.display = 'block';
+      document.getElementById('reportLinkBox').style.display = 'none';
+      document.getElementById('reportShareBtn').innerHTML = '<i class="ti ti-link"></i> Generate Share Link';
+      document.getElementById('reportOutput')._reportData = { selected, from: from.toISOString(), to: to.toISOString() };
+    });
+
+    document.getElementById('reportShareBtn').addEventListener('click', async () => {
+      if (!currentUser) return;
+      const data = document.getElementById('reportOutput')._reportData;
+      if (!data) return;
+      const { selected, from, to } = data;
+      const fromDate = new Date(from); const toDate = new Date(to);
+      const clientsData = {};
+      selected.forEach(client => {
+        const entries = (state.entries[client] || []).filter(e => { const d = new Date(e.date); return d >= fromDate && d <= toDate; });
+        clientsData[client] = entries;
+      });
+      const token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+      const label = `${fromDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} — ${toDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
+      const url = `${location.origin}${location.pathname}?report=${token}`;
+      // Update UI instantly
+      if (!state.reportLinks) state.reportLinks = [];
+      state.reportLinks.push({ token, clients: selected, label });
+      document.getElementById('reportLinkInput').value = url;
+      document.getElementById('reportLinkBox').style.display = 'block';
+      document.getElementById('reportShareBtn').innerHTML = '<i class="ti ti-refresh"></i> Regenerate';
+      renderActiveReportLinks();
+      // Write to Firestore in background
+      setDoc(doc(db, 'reports', token), { uid: currentUser.uid, from, to, clients: JSON.stringify(clientsData) });
+      saveToCloud();
+    });
+
+    document.getElementById('reportLinkCopy').addEventListener('click', () => {
+      navigator.clipboard.writeText(document.getElementById('reportLinkInput').value).then(() => {
+        document.getElementById('reportLinkCopy').innerHTML = '<i class="ti ti-check"></i> Copied';
+        setTimeout(() => { document.getElementById('reportLinkCopy').innerHTML = '<i class="ti ti-copy"></i> Copy'; }, 2000);
+      });
+    });
+
+    document.getElementById('reportLinkRevoke').addEventListener('click', async () => {
+      const token = document.getElementById('reportLinkInput').value.split('?report=')[1];
+      if (!token) return;
+      // Update UI instantly
+      if (state.reportLinks) state.reportLinks = state.reportLinks.filter(r => r.token !== token);
+      document.getElementById('reportLinkBox').style.display = 'none';
+      document.getElementById('reportShareBtn').innerHTML = '<i class="ti ti-link"></i> Generate Share Link';
+      renderActiveReportLinks();
+      // Delete in background
+      deleteDoc(doc(db, 'reports', token));
+      saveToCloud();
+    });
+
+    // ── Helpers ────────────────────────────────────────────
+    // Snap bare-background text rows into the gaps between the 32px notebook lines
+    const SNAP_SELECTORS = ['.eyebrow', '.header-sub', '.user-bar-wrap', '.sync-indicator', '.clients-bar', '.manage-clients-btn', '#clientNotesPanel > div:first-child', '.period-row', '.group-header', '.footer p'];
+    function snapToLines() {
+      const LINE = 32;
+      const els = document.querySelectorAll(SNAP_SELECTORS.join(','));
+      els.forEach(el => {
+        el.style.paddingTop = '';
+        el.style.marginTop = '';
+        const r = el.getBoundingClientRect();
+        if (!r.height) return; // hidden
+        const cs = getComputedStyle(el);
+        const basePad = parseFloat(cs.paddingTop) || 0;
+        const padBottom = parseFloat(cs.paddingBottom) || 0;
+        // multi-row pill blocks anchor by their first row (26px tall); others by text center
+        const center = el.classList.contains('clients-bar')
+          ? r.top + window.scrollY + 13
+          : r.top + window.scrollY + (r.height - padBottom) / 2;
+        // gap centers sit at 15.5 + 32k (line drawn at 31-32px of each repeat)
+        const delta = ((15.5 - center) % LINE + LINE) % LINE;
+        el.style.paddingTop = (basePad + delta) + 'px';
+      });
+    }
+    window.addEventListener('resize', () => requestAnimationFrame(snapToLines));
+    window.addEventListener('load', () => requestAnimationFrame(snapToLines));
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => requestAnimationFrame(snapToLines));
+
+    // Sticky brand bar — appears the moment the wordmark scrolls out of view
+    const stickyBrand = document.getElementById('stickyBrand');
+    const stickyH = stickyBrand.offsetHeight || 40;
+    window.addEventListener('scroll', () => {
+      const h1 = document.querySelector('.app-screen.visible .header h1, #shareScreen .header h1, #reportShareScreen .header h1');
+      const gone = h1 ? h1.getBoundingClientRect().bottom <= stickyH : window.scrollY > 130;
+      stickyBrand.classList.toggle('visible', gone);
+    }, { passive: true });
+
+    function formatAmount_raw(n) { const num = Number(n); return num % 1 === 0 ? num.toLocaleString('en-US') : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function parseLocalDate(iso) { const [y,m,d] = iso.split('T')[0].split('-').map(Number); return new Date(y, m-1, d); }
+    function formatDate(iso) { return parseLocalDate(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+    function editedTag(entry) { return entry.editedAt ? ' · edited ' + parseLocalDate(entry.editedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''; }
+    function groupKey(iso) { const d = parseLocalDate(iso); return state.period === 'week' ? d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }); }
+    function escHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  </script>
+</body>
+</html>
