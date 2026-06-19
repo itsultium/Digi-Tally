@@ -179,6 +179,16 @@
     .sticky-brand .sb-logo { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 0.06em; color: var(--text); line-height: 1; }
     .sticky-brand .sb-logo span { color: var(--accent); }
     .sticky-brand .sb-eyebrow { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--hint); font-weight: 600; }
+
+    /* ── iOS / touch refinements ──────────────────────── */
+    * { -webkit-tap-highlight-color: transparent; }
+    button, .entry-check, .entry-edit, .entry-delete, .entry-info, .entry-amount,
+    .currency-select-btn, .currency-option, a, label { touch-action: manipulation; }
+    .modal, #currencyList, #onboardList, .manage-list { -webkit-overflow-scrolling: touch; }
+    @media (hover: none) and (pointer: coarse) {
+      .entry-edit, .entry-delete { opacity: 1; }
+      input, textarea, select { font-size: 16px !important; }
+    }
   </style>
 </head>
 <body>
@@ -294,7 +304,7 @@
           <button class="sec-btn" id="copyBtn"><i class="ti ti-copy"></i> Copy summary</button>
           <button class="sec-btn" id="exportBtn"><i class="ti ti-download"></i> Export CSV</button>
           <button class="sec-btn" id="invoiceBtn"><i class="ti ti-file-invoice"></i> Invoice / Receipt</button>
-          <button class="sec-btn" id="reportBtn"><i class="ti ti-share"></i> Share Overview</button>
+          <button class="sec-btn" id="reportBtn"><i class="ti ti-share"></i> Share Report</button>
           <button class="sec-btn" id="markAllPaidBtn"><i class="ti ti-circle-check"></i> Mark all paid</button>
           <button class="sec-btn" id="clearPaidBtn"><i class="ti ti-trash"></i> Delete paid</button>
         </div>
@@ -468,7 +478,7 @@
       </header>
       <div id="reportShareResults" style="display:flex;flex-direction:column;gap:10px;margin-bottom:2rem;"></div>
       <footer class="footer">
-        <p>Built by <a href="https://github.com/itsultium/" target="_blank">Bruder Motion</a> — shared report, read-only</p>
+        <p>Built by <a href="https://github.com/itsultium/" target="_blank">Bruder Motion</a> — Share Overview, read-only</p>
       </footer>
     </div>
   </div>
